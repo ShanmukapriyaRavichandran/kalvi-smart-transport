@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Java Build Artifacts
+bin/
+*.class
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.iml
+
+# Environment & Vercel
+.env
+.env.local
+.vercel/
+
+# OS Files
+Thumbs.db
+Desktop.ini
+.DS_Store

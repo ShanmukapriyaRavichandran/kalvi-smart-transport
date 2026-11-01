@@ -1,0 +1,1149 @@
+{
+  "admins": [
+    {
+      "username": "admin",
+      "password": "admin123",
+      "role": "ADMIN"
+    }
+  ],
+  "buses": [
+    {
+      "bus_id": "B01",
+      "bus_type": "Mini Bus",
+      "capacity": 30,
+      "driver_name": "Shanmugaraj K",
+      "driver_phone": "+91 98421 11001",
+      "morning_departure": "06:45 AM",
+      "evening_departure": "05:15 PM",
+      "status": "Active"
+    },
+    {
+      "bus_id": "B02",
+      "bus_type": "Standard Bus",
+      "capacity": 45,
+      "driver_name": "Murugesan P",
+      "driver_phone": "+91 98421 11002",
+      "morning_departure": "06:40 AM",
+      "evening_departure": "05:15 PM",
+      "status": "Active"
+    },
+    {
+      "bus_id": "B03",
+      "bus_type": "Standard Bus",
+      "capacity": 45,
+      "driver_name": "Palanisamy V",
+      "driver_phone": "+91 98421 11003",
+      "morning_departure": "06:30 AM",
+      "evening_departure": "05:15 PM",
+      "status": "Active"
+    }
+  ],
+  "stops": [
+    {
+      "stop_id": "CAMPUS",
+      "stop_name": "Kalvi College Campus",
+      "bus_route": "ALL",
+      "stop_order": 0,
+      "latitude": 11.315,
+      "longitude": 77.678,
+      "morning_time": "08:15 AM",
+      "evening_time": "05:00 PM"
+    },
+    {
+      "stop_id": "B01-01",
+      "stop_name": "Erode Bus Stand",
+      "bus_route": "B01",
+      "stop_order": 1,
+      "latitude": 11.341,
+      "longitude": 77.7172,
+      "morning_time": "07:00 AM",
+      "evening_time": "05:30 PM"
+    },
+    {
+      "stop_id": "B01-02",
+      "stop_name": "Brough Road",
+      "bus_route": "B01",
+      "stop_order": 2,
+      "latitude": 11.3435,
+      "longitude": 77.721,
+      "morning_time": "07:05 AM",
+      "evening_time": "05:35 PM"
+    },
+    {
+      "stop_id": "B01-03",
+      "stop_name": "GH Roundana",
+      "bus_route": "B01",
+      "stop_order": 3,
+      "latitude": 11.347,
+      "longitude": 77.7245,
+      "morning_time": "07:10 AM",
+      "evening_time": "05:40 PM"
+    },
+    {
+      "stop_id": "B01-04",
+      "stop_name": "Paneerselvam Park",
+      "bus_route": "B01",
+      "stop_order": 4,
+      "latitude": 11.349,
+      "longitude": 77.727,
+      "morning_time": "07:15 AM",
+      "evening_time": "05:45 PM"
+    },
+    {
+      "stop_id": "B01-05",
+      "stop_name": "Karungalpalayam",
+      "bus_route": "B01",
+      "stop_order": 5,
+      "latitude": 11.354,
+      "longitude": 77.739,
+      "morning_time": "07:22 AM",
+      "evening_time": "05:52 PM"
+    },
+    {
+      "stop_id": "B01-06",
+      "stop_name": "Pallipalayam",
+      "bus_route": "B01",
+      "stop_order": 6,
+      "latitude": 11.36,
+      "longitude": 77.747,
+      "morning_time": "07:28 AM",
+      "evening_time": "05:58 PM"
+    },
+    {
+      "stop_id": "B01-07",
+      "stop_name": "Kumarapalayam",
+      "bus_route": "B01",
+      "stop_order": 7,
+      "latitude": 11.442,
+      "longitude": 77.712,
+      "morning_time": "07:38 AM",
+      "evening_time": "06:08 PM"
+    },
+    {
+      "stop_id": "B01-08",
+      "stop_name": "Bhavani Old Bus Stand",
+      "bus_route": "B01",
+      "stop_order": 8,
+      "latitude": 11.45,
+      "longitude": 77.683,
+      "morning_time": "07:46 AM",
+      "evening_time": "06:16 PM"
+    },
+    {
+      "stop_id": "B01-09",
+      "stop_name": "Kalingarayanpalayam",
+      "bus_route": "B01",
+      "stop_order": 9,
+      "latitude": 11.428,
+      "longitude": 77.669,
+      "morning_time": "07:52 AM",
+      "evening_time": "06:22 PM"
+    },
+    {
+      "stop_id": "B01-10",
+      "stop_name": "Chithode Junction",
+      "bus_route": "B01",
+      "stop_order": 10,
+      "latitude": 11.401,
+      "longitude": 77.665,
+      "morning_time": "07:58 AM",
+      "evening_time": "06:28 PM"
+    },
+    {
+      "stop_id": "B02-01",
+      "stop_name": "Solar Pirivu",
+      "bus_route": "B02",
+      "stop_order": 1,
+      "latitude": 11.311,
+      "longitude": 77.738,
+      "morning_time": "06:55 AM",
+      "evening_time": "05:35 PM"
+    },
+    {
+      "stop_id": "B02-02",
+      "stop_name": "Lakkapuram",
+      "bus_route": "B02",
+      "stop_order": 2,
+      "latitude": 11.297,
+      "longitude": 77.755,
+      "morning_time": "07:02 AM",
+      "evening_time": "05:42 PM"
+    },
+    {
+      "stop_id": "B02-03",
+      "stop_name": "Kollampalayam Bypass",
+      "bus_route": "B02",
+      "stop_order": 3,
+      "latitude": 11.319,
+      "longitude": 77.722,
+      "morning_time": "07:10 AM",
+      "evening_time": "05:50 PM"
+    },
+    {
+      "stop_id": "B02-04",
+      "stop_name": "Railway Station Gate",
+      "bus_route": "B02",
+      "stop_order": 4,
+      "latitude": 11.328,
+      "longitude": 77.725,
+      "morning_time": "07:16 AM",
+      "evening_time": "05:56 PM"
+    },
+    {
+      "stop_id": "B02-05",
+      "stop_name": "Marapalam",
+      "bus_route": "B02",
+      "stop_order": 5,
+      "latitude": 11.332,
+      "longitude": 77.712,
+      "morning_time": "07:22 AM",
+      "evening_time": "06:02 PM"
+    },
+    {
+      "stop_id": "B02-06",
+      "stop_name": "Surampatti Valasu",
+      "bus_route": "B02",
+      "stop_order": 6,
+      "latitude": 11.322,
+      "longitude": 77.701,
+      "morning_time": "07:29 AM",
+      "evening_time": "06:09 PM"
+    },
+    {
+      "stop_id": "B02-07",
+      "stop_name": "Thindal Murugan Temple",
+      "bus_route": "B02",
+      "stop_order": 7,
+      "latitude": 11.309,
+      "longitude": 77.672,
+      "morning_time": "07:37 AM",
+      "evening_time": "06:17 PM"
+    },
+    {
+      "stop_id": "B02-08",
+      "stop_name": "Villarasampatti",
+      "bus_route": "B02",
+      "stop_order": 8,
+      "latitude": 11.325,
+      "longitude": 77.665,
+      "morning_time": "07:44 AM",
+      "evening_time": "06:24 PM"
+    },
+    {
+      "stop_id": "B02-09",
+      "stop_name": "Perundurai Old Bus Stand",
+      "bus_route": "B02",
+      "stop_order": 9,
+      "latitude": 11.276,
+      "longitude": 77.583,
+      "morning_time": "07:53 AM",
+      "evening_time": "06:33 PM"
+    },
+    {
+      "stop_id": "B02-10",
+      "stop_name": "SIPCOT Perundurai Gate",
+      "bus_route": "B02",
+      "stop_order": 10,
+      "latitude": 11.265,
+      "longitude": 77.562,
+      "morning_time": "07:59 AM",
+      "evening_time": "06:39 PM"
+    },
+    {
+      "stop_id": "B03-01",
+      "stop_name": "Modakkurichi Town",
+      "bus_route": "B03",
+      "stop_order": 1,
+      "latitude": 11.231,
+      "longitude": 77.755,
+      "morning_time": "06:45 AM",
+      "evening_time": "05:35 PM"
+    },
+    {
+      "stop_id": "B03-02",
+      "stop_name": "Elumathur Junction",
+      "bus_route": "B03",
+      "stop_order": 2,
+      "latitude": 11.215,
+      "longitude": 77.795,
+      "morning_time": "06:53 AM",
+      "evening_time": "05:43 PM"
+    },
+    {
+      "stop_id": "B03-03",
+      "stop_name": "Sivagiri Bus Stop",
+      "bus_route": "B03",
+      "stop_order": 3,
+      "latitude": 11.121,
+      "longitude": 77.788,
+      "morning_time": "07:03 AM",
+      "evening_time": "05:53 PM"
+    },
+    {
+      "stop_id": "B03-04",
+      "stop_name": "Kodumudi Road Pirivu",
+      "bus_route": "B03",
+      "stop_order": 4,
+      "latitude": 11.08,
+      "longitude": 77.882,
+      "morning_time": "07:11 AM",
+      "evening_time": "06:01 PM"
+    },
+    {
+      "stop_id": "B03-05",
+      "stop_name": "Muthur Corner",
+      "bus_route": "B03",
+      "stop_order": 5,
+      "latitude": 11.085,
+      "longitude": 77.683,
+      "morning_time": "07:20 AM",
+      "evening_time": "06:10 PM"
+    },
+    {
+      "stop_id": "B03-06",
+      "stop_name": "Chennimalai Bus Stand",
+      "bus_route": "B03",
+      "stop_order": 6,
+      "latitude": 11.168,
+      "longitude": 77.611,
+      "morning_time": "07:30 AM",
+      "evening_time": "06:20 PM"
+    },
+    {
+      "stop_id": "B03-07",
+      "stop_name": "Ingur Industrial Area",
+      "bus_route": "B03",
+      "stop_order": 7,
+      "latitude": 11.229,
+      "longitude": 77.601,
+      "morning_time": "07:38 AM",
+      "evening_time": "06:28 PM"
+    },
+    {
+      "stop_id": "B03-08",
+      "stop_name": "Vijayamangalam Toll",
+      "bus_route": "B03",
+      "stop_order": 8,
+      "latitude": 11.235,
+      "longitude": 77.495,
+      "morning_time": "07:47 AM",
+      "evening_time": "06:37 PM"
+    },
+    {
+      "stop_id": "B03-09",
+      "stop_name": "Uthukuli Road",
+      "bus_route": "B03",
+      "stop_order": 9,
+      "latitude": 11.22,
+      "longitude": 77.45,
+      "morning_time": "07:54 AM",
+      "evening_time": "06:44 PM"
+    },
+    {
+      "stop_id": "B03-10",
+      "stop_name": "Nasiyanur Junction",
+      "bus_route": "B03",
+      "stop_order": 10,
+      "latitude": 11.365,
+      "longitude": 77.632,
+      "morning_time": "08:02 AM",
+      "evening_time": "06:52 PM"
+    }
+  ],
+  "drivers": [
+    {
+      "driver_id": "driver1",
+      "password": "driver123",
+      "name": "Shanmugaraj K",
+      "phone": "+91 98421 11001",
+      "license_number": "TN-33-2015-001001",
+      "license_doc": "license_shanmugaraj.pdf",
+      "experience_years": 9,
+      "assigned_bus": "B01",
+      "is_approved": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "driver_id": "driver2",
+      "password": "driver123",
+      "name": "Murugesan P",
+      "phone": "+91 98421 11002",
+      "license_number": "TN-33-2016-002002",
+      "license_doc": "license_murugesan.pdf",
+      "experience_years": 8,
+      "assigned_bus": "B02",
+      "is_approved": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "driver_id": "driver3",
+      "password": "driver123",
+      "name": "Palanisamy V",
+      "phone": "+91 98421 11003",
+      "license_number": "TN-33-2014-003003",
+      "license_doc": "license_palanisamy.pdf",
+      "experience_years": 11,
+      "assigned_bus": "B03",
+      "is_approved": 1,
+      "created_at": "2026-11-01 17:44:35"
+    }
+  ],
+  "students": [
+    {
+      "id": 1,
+      "roll_no": "26CSR001",
+      "full_name": "Aarav Kumar",
+      "department": "CSE",
+      "current_year": "3rd Year",
+      "stop_name": "Erode Bus Stand",
+      "bus_id": "B01",
+      "email": "aarav.k@kalvi.edu",
+      "phone": "9842100001",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 2,
+      "roll_no": "26CSR002",
+      "full_name": "Priya Dharshini",
+      "department": "ECE",
+      "current_year": "2nd Year",
+      "stop_name": "Brough Road",
+      "bus_id": "B01",
+      "email": "priya.d@kalvi.edu",
+      "phone": "9842100002",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 3,
+      "roll_no": "26CSR003",
+      "full_name": "Karthik Raja",
+      "department": "AI & DS",
+      "current_year": "1st Year",
+      "stop_name": "GH Roundana",
+      "bus_id": "B01",
+      "email": "karthik.r@kalvi.edu",
+      "phone": "9842100003",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 4,
+      "roll_no": "26CSR004",
+      "full_name": "Sneha Ramachandran",
+      "department": "IT",
+      "current_year": "4th Year",
+      "stop_name": "Paneerselvam Park",
+      "bus_id": "B01",
+      "email": "sneha.r@kalvi.edu",
+      "phone": "9842100004",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 5,
+      "roll_no": "26CSR005",
+      "full_name": "Vigneshwaran M",
+      "department": "MECH",
+      "current_year": "2nd Year",
+      "stop_name": "Karungalpalayam",
+      "bus_id": "B01",
+      "email": "vignesh.m@kalvi.edu",
+      "phone": "9842100005",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 6,
+      "roll_no": "26CSR006",
+      "full_name": "Deepika S",
+      "department": "CSE",
+      "current_year": "3rd Year",
+      "stop_name": "Pallipalayam",
+      "bus_id": "B01",
+      "email": "deepika.s@kalvi.edu",
+      "phone": "9842100006",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 7,
+      "roll_no": "26CSR007",
+      "full_name": "Gokul Prasad",
+      "department": "EEE",
+      "current_year": "1st Year",
+      "stop_name": "Kumarapalayam",
+      "bus_id": "B01",
+      "email": "gokul.p@kalvi.edu",
+      "phone": "9842100007",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 8,
+      "roll_no": "26CSR008",
+      "full_name": "Harini Balaji",
+      "department": "ECE",
+      "current_year": "4th Year",
+      "stop_name": "Bhavani Old Bus Stand",
+      "bus_id": "B01",
+      "email": "harini.b@kalvi.edu",
+      "phone": "9842100008",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 9,
+      "roll_no": "26CSR009",
+      "full_name": "Kavya Murugan",
+      "department": "AI & DS",
+      "current_year": "2nd Year",
+      "stop_name": "Kalingarayanpalayam",
+      "bus_id": "B01",
+      "email": "kavya.m@kalvi.edu",
+      "phone": "9842100009",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 10,
+      "roll_no": "26CSR010",
+      "full_name": "Manoj Kumar P",
+      "department": "CSE",
+      "current_year": "3rd Year",
+      "stop_name": "Chithode Junction",
+      "bus_id": "B01",
+      "email": "manoj.k@kalvi.edu",
+      "phone": "9842100010",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 11,
+      "roll_no": "26CSR011",
+      "full_name": "Naveen Raj",
+      "department": "MECH",
+      "current_year": "2nd Year",
+      "stop_name": "Solar Pirivu",
+      "bus_id": "B02",
+      "email": "naveen.r@kalvi.edu",
+      "phone": "9842100011",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 12,
+      "roll_no": "26CSR012",
+      "full_name": "Abinaya V",
+      "department": "CSE",
+      "current_year": "1st Year",
+      "stop_name": "Lakkapuram",
+      "bus_id": "B02",
+      "email": "abinaya.v@kalvi.edu",
+      "phone": "9842100012",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 13,
+      "roll_no": "26CSR013",
+      "full_name": "Dinesh K",
+      "department": "IT",
+      "current_year": "3rd Year",
+      "stop_name": "Kollampalayam Bypass",
+      "bus_id": "B02",
+      "email": "dinesh.k@kalvi.edu",
+      "phone": "9842100013",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 14,
+      "roll_no": "26CSR014",
+      "full_name": "Divya Bharathi",
+      "department": "ECE",
+      "current_year": "4th Year",
+      "stop_name": "Railway Station Gate",
+      "bus_id": "B02",
+      "email": "divya.b@kalvi.edu",
+      "phone": "9842100014",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 15,
+      "roll_no": "26CSR015",
+      "full_name": "Gowtham S",
+      "department": "AI & DS",
+      "current_year": "2nd Year",
+      "stop_name": "Marapalam",
+      "bus_id": "B02",
+      "email": "gowtham.s@kalvi.edu",
+      "phone": "9842100015",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 16,
+      "roll_no": "26CSR016",
+      "full_name": "Keerthana M",
+      "department": "CSE",
+      "current_year": "3rd Year",
+      "stop_name": "Surampatti Valasu",
+      "bus_id": "B02",
+      "email": "keerthana.m@kalvi.edu",
+      "phone": "9842100016",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 17,
+      "roll_no": "26CSR017",
+      "full_name": "Lokesh Kannan",
+      "department": "EEE",
+      "current_year": "1st Year",
+      "stop_name": "Thindal Murugan Temple",
+      "bus_id": "B02",
+      "email": "lokesh.k@kalvi.edu",
+      "phone": "9842100017",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 18,
+      "roll_no": "26CSR018",
+      "full_name": "Monisha R",
+      "department": "IT",
+      "current_year": "4th Year",
+      "stop_name": "Villarasampatti",
+      "bus_id": "B02",
+      "email": "monisha.r@kalvi.edu",
+      "phone": "9842100018",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 19,
+      "roll_no": "26CSR019",
+      "full_name": "Prasanth N",
+      "department": "MECH",
+      "current_year": "3rd Year",
+      "stop_name": "Perundurai Old Bus Stand",
+      "bus_id": "B02",
+      "email": "prasanth.n@kalvi.edu",
+      "phone": "9842100019",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 20,
+      "roll_no": "26CSR020",
+      "full_name": "Rithika Selvi",
+      "department": "ECE",
+      "current_year": "2nd Year",
+      "stop_name": "SIPCOT Perundurai Gate",
+      "bus_id": "B02",
+      "email": "rithika.s@kalvi.edu",
+      "phone": "9842100020",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 21,
+      "roll_no": "26CSR021",
+      "full_name": "Sanjay Kumar B",
+      "department": "CSE",
+      "current_year": "1st Year",
+      "stop_name": "Modakkurichi Town",
+      "bus_id": "B03",
+      "email": "sanjay.b@kalvi.edu",
+      "phone": "9842100021",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 22,
+      "roll_no": "26CSR022",
+      "full_name": "Shalini T",
+      "department": "AI & DS",
+      "current_year": "3rd Year",
+      "stop_name": "Elumathur Junction",
+      "bus_id": "B03",
+      "email": "shalini.t@kalvi.edu",
+      "phone": "9842100022",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 23,
+      "roll_no": "26CSR023",
+      "full_name": "Surya Prakash",
+      "department": "IT",
+      "current_year": "4th Year",
+      "stop_name": "Sivagiri Bus Stop",
+      "bus_id": "B03",
+      "email": "surya.p@kalvi.edu",
+      "phone": "9842100023",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 24,
+      "roll_no": "26CSR024",
+      "full_name": "Swathi Ananth",
+      "department": "ECE",
+      "current_year": "2nd Year",
+      "stop_name": "Kodumudi Road Pirivu",
+      "bus_id": "B03",
+      "email": "swathi.a@kalvi.edu",
+      "phone": "9842100024",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 25,
+      "roll_no": "26CSR025",
+      "full_name": "Tarun Adithya",
+      "department": "CSE",
+      "current_year": "3rd Year",
+      "stop_name": "Muthur Corner",
+      "bus_id": "B03",
+      "email": "tarun.a@kalvi.edu",
+      "phone": "9842100025",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 26,
+      "roll_no": "26CSR026",
+      "full_name": "Udhaya Sankar",
+      "department": "MECH",
+      "current_year": "1st Year",
+      "stop_name": "Chennimalai Bus Stand",
+      "bus_id": "B03",
+      "email": "udhaya.s@kalvi.edu",
+      "phone": "9842100026",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 27,
+      "roll_no": "26CSR027",
+      "full_name": "Vaishnavi K",
+      "department": "AI & DS",
+      "current_year": "4th Year",
+      "stop_name": "Ingur Industrial Area",
+      "bus_id": "B03",
+      "email": "vaishnavi.k@kalvi.edu",
+      "phone": "9842100027",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 28,
+      "roll_no": "26CSR028",
+      "full_name": "Vijay Anand",
+      "department": "EEE",
+      "current_year": "2nd Year",
+      "stop_name": "Vijayamangalam Toll",
+      "bus_id": "B03",
+      "email": "vijay.a@kalvi.edu",
+      "phone": "9842100028",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 29,
+      "roll_no": "26CSR029",
+      "full_name": "Yuvashree M",
+      "department": "IT",
+      "current_year": "3rd Year",
+      "stop_name": "Uthukuli Road",
+      "bus_id": "B03",
+      "email": "yuvashree.m@kalvi.edu",
+      "phone": "9842100029",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 30,
+      "roll_no": "26CSR030",
+      "full_name": "Shanmugapriya G",
+      "department": "CSE",
+      "current_year": "4th Year",
+      "stop_name": "Nasiyanur Junction",
+      "bus_id": "B03",
+      "email": "shanmuga.g@kalvi.edu",
+      "phone": "9842100030",
+      "password": "student123",
+      "is_verified": 1,
+      "created_at": "2026-11-01 17:44:35"
+    }
+  ],
+  "simulated_conditions": [
+    {
+      "condition_key": "HEAVY_TRAFFIC",
+      "condition_name": "Heavy Traffic Congestion",
+      "is_enabled": 0,
+      "penalty_mins": 18,
+      "affected_source": "Karungalpalayam",
+      "affected_destination": "Pallipalayam",
+      "color_code": "#f97316",
+      "icon": "\ud83d\ude97",
+      "description": "Simulated peak hour vehicle gridlock on Cauvery Bridge road"
+    },
+    {
+      "condition_key": "ROAD_CONSTRUCTION",
+      "condition_name": "Road Construction & Excavation",
+      "is_enabled": 0,
+      "penalty_mins": 16,
+      "affected_source": "GH Roundana",
+      "affected_destination": "Paneerselvam Park",
+      "color_code": "#eab308",
+      "icon": "\ud83c\udfd7\ufe0f",
+      "description": "Simulated underpass digging and Smart City storm drain pipeline works"
+    },
+    {
+      "condition_key": "ROAD_MAINTENANCE",
+      "condition_name": "Road Maintenance & Resurfacing",
+      "is_enabled": 0,
+      "penalty_mins": 10,
+      "affected_source": "Kumarapalayam",
+      "affected_destination": "Bhavani Old Bus Stand",
+      "color_code": "#a855f7",
+      "icon": "\ud83d\udee0\ufe0f",
+      "description": "Simulated road milling and bitumen tarring in single-lane mode"
+    },
+    {
+      "condition_key": "ROAD_BLOCK",
+      "condition_name": "Road Block / Complete Closure",
+      "is_enabled": 0,
+      "penalty_mins": 99999,
+      "affected_source": "Brough Road",
+      "affected_destination": "GH Roundana",
+      "color_code": "#ef4444",
+      "icon": "\ud83d\udea7",
+      "description": "Simulated complete barricade closure; routing engine forces alternative bypass"
+    }
+  ],
+  "incidents": [
+    {
+      "id": 1,
+      "road_source": "Brough Road",
+      "road_destination": "GH Roundana",
+      "incident_type": "ROAD_BLOCK",
+      "penalty_mins": 99999,
+      "description": "Brough Road Bridge Maintenance - Complete Road Block",
+      "active": 0,
+      "created_at": "2026-11-01 17:44:35"
+    },
+    {
+      "id": 2,
+      "road_source": "Karungalpalayam",
+      "road_destination": "Pallipalayam",
+      "incident_type": "HEAVY_TRAFFIC",
+      "penalty_mins": 18,
+      "description": "Cauvery Bridge Peak Hour Congestion",
+      "active": 0,
+      "created_at": "2026-11-01 17:44:35"
+    }
+  ],
+  "road_edges": [
+    {
+      "id": 1,
+      "source": "CAMPUS",
+      "destination": "Erode Bus Stand",
+      "distance_km": 5.5,
+      "travel_time": 10
+    },
+    {
+      "id": 2,
+      "source": "CAMPUS",
+      "destination": "Solar Pirivu",
+      "distance_km": 6.2,
+      "travel_time": 11
+    },
+    {
+      "id": 3,
+      "source": "CAMPUS",
+      "destination": "Modakkurichi Town",
+      "distance_km": 7.8,
+      "travel_time": 13
+    },
+    {
+      "id": 4,
+      "source": "CAMPUS",
+      "destination": "Thindal Murugan Temple",
+      "distance_km": 3.8,
+      "travel_time": 8
+    },
+    {
+      "id": 5,
+      "source": "CAMPUS",
+      "destination": "Chithode Junction",
+      "distance_km": 8.5,
+      "travel_time": 14
+    },
+    {
+      "id": 6,
+      "source": "Erode Bus Stand",
+      "destination": "Brough Road",
+      "distance_km": 1.2,
+      "travel_time": 3
+    },
+    {
+      "id": 7,
+      "source": "Brough Road",
+      "destination": "GH Roundana",
+      "distance_km": 1.5,
+      "travel_time": 4
+    },
+    {
+      "id": 8,
+      "source": "GH Roundana",
+      "destination": "Paneerselvam Park",
+      "distance_km": 1.1,
+      "travel_time": 3
+    },
+    {
+      "id": 9,
+      "source": "Paneerselvam Park",
+      "destination": "Karungalpalayam",
+      "distance_km": 2.4,
+      "travel_time": 5
+    },
+    {
+      "id": 10,
+      "source": "Karungalpalayam",
+      "destination": "Pallipalayam",
+      "distance_km": 1.8,
+      "travel_time": 4
+    },
+    {
+      "id": 11,
+      "source": "Pallipalayam",
+      "destination": "Kumarapalayam",
+      "distance_km": 4.5,
+      "travel_time": 8
+    },
+    {
+      "id": 12,
+      "source": "Kumarapalayam",
+      "destination": "Bhavani Old Bus Stand",
+      "distance_km": 3.2,
+      "travel_time": 6
+    },
+    {
+      "id": 13,
+      "source": "Bhavani Old Bus Stand",
+      "destination": "Kalingarayanpalayam",
+      "distance_km": 2.5,
+      "travel_time": 5
+    },
+    {
+      "id": 14,
+      "source": "Kalingarayanpalayam",
+      "destination": "Chithode Junction",
+      "distance_km": 3.0,
+      "travel_time": 6
+    },
+    {
+      "id": 15,
+      "source": "Solar Pirivu",
+      "destination": "Lakkapuram",
+      "distance_km": 2.0,
+      "travel_time": 4
+    },
+    {
+      "id": 16,
+      "source": "Lakkapuram",
+      "destination": "Kollampalayam Bypass",
+      "distance_km": 2.8,
+      "travel_time": 5
+    },
+    {
+      "id": 17,
+      "source": "Kollampalayam Bypass",
+      "destination": "Railway Station Gate",
+      "distance_km": 2.1,
+      "travel_time": 4
+    },
+    {
+      "id": 18,
+      "source": "Railway Station Gate",
+      "destination": "Marapalam",
+      "distance_km": 1.3,
+      "travel_time": 3
+    },
+    {
+      "id": 19,
+      "source": "Marapalam",
+      "destination": "Surampatti Valasu",
+      "distance_km": 2.5,
+      "travel_time": 5
+    },
+    {
+      "id": 20,
+      "source": "Surampatti Valasu",
+      "destination": "Thindal Murugan Temple",
+      "distance_km": 3.2,
+      "travel_time": 6
+    },
+    {
+      "id": 21,
+      "source": "Thindal Murugan Temple",
+      "destination": "Villarasampatti",
+      "distance_km": 2.6,
+      "travel_time": 5
+    },
+    {
+      "id": 22,
+      "source": "Villarasampatti",
+      "destination": "Perundurai Old Bus Stand",
+      "distance_km": 4.2,
+      "travel_time": 7
+    },
+    {
+      "id": 23,
+      "source": "Perundurai Old Bus Stand",
+      "destination": "SIPCOT Perundurai Gate",
+      "distance_km": 2.2,
+      "travel_time": 4
+    },
+    {
+      "id": 24,
+      "source": "Modakkurichi Town",
+      "destination": "Elumathur Junction",
+      "distance_km": 3.5,
+      "travel_time": 6
+    },
+    {
+      "id": 25,
+      "source": "Elumathur Junction",
+      "destination": "Sivagiri Bus Stop",
+      "distance_km": 4.0,
+      "travel_time": 7
+    },
+    {
+      "id": 26,
+      "source": "Sivagiri Bus Stop",
+      "destination": "Kodumudi Road Pirivu",
+      "distance_km": 3.1,
+      "travel_time": 5
+    },
+    {
+      "id": 27,
+      "source": "Kodumudi Road Pirivu",
+      "destination": "Muthur Corner",
+      "distance_km": 3.6,
+      "travel_time": 6
+    },
+    {
+      "id": 28,
+      "source": "Muthur Corner",
+      "destination": "Chennimalai Bus Stand",
+      "distance_km": 4.8,
+      "travel_time": 8
+    },
+    {
+      "id": 29,
+      "source": "Chennimalai Bus Stand",
+      "destination": "Ingur Industrial Area",
+      "distance_km": 3.4,
+      "travel_time": 6
+    },
+    {
+      "id": 30,
+      "source": "Ingur Industrial Area",
+      "destination": "Vijayamangalam Toll",
+      "distance_km": 4.1,
+      "travel_time": 7
+    },
+    {
+      "id": 31,
+      "source": "Vijayamangalam Toll",
+      "destination": "Uthukuli Road",
+      "distance_km": 2.9,
+      "travel_time": 5
+    },
+    {
+      "id": 32,
+      "source": "Uthukuli Road",
+      "destination": "Nasiyanur Junction",
+      "distance_km": 3.3,
+      "travel_time": 6
+    },
+    {
+      "id": 33,
+      "source": "Brough Road",
+      "destination": "Paneerselvam Park",
+      "distance_km": 1.8,
+      "travel_time": 4
+    },
+    {
+      "id": 34,
+      "source": "Erode Bus Stand",
+      "destination": "Paneerselvam Park",
+      "distance_km": 2.2,
+      "travel_time": 5
+    },
+    {
+      "id": 35,
+      "source": "Karungalpalayam",
+      "destination": "Bhavani Old Bus Stand",
+      "distance_km": 4.8,
+      "travel_time": 8
+    },
+    {
+      "id": 38,
+      "source": "Railway Station Gate",
+      "destination": "Surampatti Valasu",
+      "distance_km": 2.4,
+      "travel_time": 5
+    },
+    {
+      "id": 46,
+      "source": "SIPCOT Perundurai Gate",
+      "destination": "CAMPUS",
+      "distance_km": 9.0,
+      "travel_time": 15
+    },
+    {
+      "id": 47,
+      "source": "Nasiyanur Junction",
+      "destination": "CAMPUS",
+      "distance_km": 6.5,
+      "travel_time": 11
+    }
+  ]
+}

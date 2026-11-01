@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalvi College Transport Management System</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#0f172a',
+            },
+            kalvi: {
+              gold: '#f59e0b',
+              amber: '#d97706',
+              navy: '#0b192c',
+              card: '#1e293b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- TOP HEADER & BRANDING -->
+  <header class="glass-nav text-white sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <!-- Logo & College Name -->
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-kalvi-navy font-black text-2xl shadow-lg ring-2 ring-amber-400/30">
+            <i class="fa-solid fa-bus-simple text-kalvi-navy"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">Official Portal</span>
+              <span id="live-time" class="text-xs text-slate-400 mono-font hidden sm:inline-block">10:15 AM</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
+              KALVI COLLEGE <span class="text-amber-400 font-extrabold">TRANSPORT</span>
+            </h1>
+            <p class="text-xs text-slate-300 font-medium tracking-wide hidden sm:block">Erode Region Fleet Logistics, Dijkstra Route Optimization & Student Portal</p>
+          </div>
+        </div>
+
+        <!-- Session Status & Logout/Login Button -->
+        <div class="flex items-center space-x-3">
+          <!-- Active Status Badge -->
+          <div id="role-pill" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="current-role-label" class="text-xs font-semibold uppercase tracking-wider text-slate-200">Checking Session...</span>
+          </div>
+
+          <!-- Logout Button (or Login if logged out) -->
+          <button id="btn-auth-action" onclick="handleAuthAction()" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-600 transition flex items-center space-x-1.5">
+            <i id="auth-btn-icon" class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span id="auth-btn-label">Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ADMIN NAVIGATION BAR (VISIBLE ONLY IN ADMIN MODE) - ATTENDANCE MODULE REMOVED, STUDENT REGISTRATION ADDED -->
+  <nav id="admin-navbar" class="bg-white border-b border-slate-200 shadow-sm sticky top-20 z-40 transition-all hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-1 sm:space-x-4 overflow-x-auto py-2 no-scrollbar">
+        <button onclick="switchAdminTab('dashboard')" id="tab-dashboard" class="admin-tab-btn active px-3.5 py-2 text-sm font-semibold rounded-lg text-brand-700 bg-brand-50 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </button>
+        <button onclick="switchAdminTab('students')" id="tab-students" class="admin-tab-btn px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-user-graduate"></i>
+          <span>Students Directory</span>
+        </button>
+        <button onclick="switchAdminTab('registration')" id="tab-registration" class="admin-tab-btn px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-user-plus text-emerald-600"></i>
+          <span>Student Registration</span>
+        </button>
+        <button onclick="switchAdminTab('routes')" id="tab-routes" class="admin-tab-btn px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-route text-amber-500"></i>
+          <span>Plan Routes (Dijkstra)</span>
+        </button>
+        <button onclick="switchAdminTab('fleet')" id="tab-fleet" class="admin-tab-btn px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-bus"></i>
+          <span>Fleet & Breakdown</span>
+        </button>
+        <button onclick="switchAdminTab('fees')" id="tab-fees" class="admin-tab-btn px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-indian-rupee-sign text-emerald-600"></i>
+          <span>Fee Audit Report</span>
+        </button>
+        <button onclick="switchAdminTab('unallocated')" id="tab-unallocated" class="admin-tab-btn px-3.5 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
+          <span>Unallocated</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== 1. DEDICATED LOGIN PORTAL VIEW (WHEN LOGGED OUT) ==================== -->
+    <div id="view-login" class="hidden max-w-md mx-auto my-8 space-y-6">
+      <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl space-y-6">
+        <div class="text-center space-y-2">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-400 text-slate-900 flex items-center justify-center text-3xl font-black shadow-md">
+            <i class="fa-solid fa-bus"></i>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">Sign in to Transport Portal</h2>
+          <p class="text-xs text-slate-500">Choose your portal type below to log in</p>
+        </div>
+
+        <!-- Separate Portal Tabs: Student Login / Admin Login -->
+        <div class="grid grid-cols-2 p-1.5 bg-slate-100 rounded-2xl text-xs font-bold text-center">
+          <button onclick="selectLoginPortal('student')" id="login-tab-student" class="py-2.5 rounded-xl bg-white shadow-sm text-slate-900 transition flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-user-graduate text-emerald-600"></i>
+            <span>Student Login</span>
+          </button>
+          <button onclick="selectLoginPortal('admin')" id="login-tab-admin" class="py-2.5 rounded-xl text-slate-600 transition flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-shield-halved text-brand-600"></i>
+            <span>Admin Portal</span>
+          </button>
+        </div>
+
+        <!-- STUDENT LOGIN FORM (USER ID IS THEIR ROLL NO, e.g. 25CSR265, PWD: ROLL NO @ BUS NO) -->
+        <form id="login-form-student" onsubmit="submitStudentLogin(event)" class="space-y-4">
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900">
+            <strong>Student Sign In:</strong> User ID is your <strong>Department Roll No</strong> (e.g. <code class="font-bold">25CSR265</code>). Password is <code class="font-bold">(Roll No @ Bus No)</code>, e.g. <code class="font-bold">25CSR201@B01</code>.
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Student Roll Number</label>
+            <input type="text" id="student-input-id" value="25CSR201" placeholder="e.g. 25CSR265, 25ITR201" class="w-full px-4 py-2.5 text-sm uppercase font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-slate-700">Password</label>
+              <button type="button" onclick="openForgotPasswordModal('student')" class="text-xs text-brand-600 hover:text-brand-800 font-semibold">Forgot Password?</button>
+            </div>
+            <input type="password" id="student-input-pwd" value="25CSR201@B01" placeholder="e.g. 25CSR201@B01" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+          </div>
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Login to Student Portal</span>
+          </button>
+          <div class="text-center text-[11px] text-slate-500 space-y-1">
+            <p>Example: CSE: <code class="font-bold text-slate-700">25CSR201</code> | Bus B01 | Pwd: <code class="font-bold text-slate-700">25CSR201@B01</code></p>
+          </div>
+        </form>
+
+        <!-- ADMIN LOGIN FORM (USER ID: kalvi@transport | PWD: kalvi123) -->
+        <form id="login-form-admin" onsubmit="submitAdminLogin(event)" class="space-y-4 hidden">
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+            <strong>Administrator Access:</strong> Fleet routing, student registration, Dijkstra route planning, and read-only fee audits.
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Admin User ID</label>
+            <input type="text" id="admin-input-user" value="kalvi@transport" placeholder="kalvi@transport" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none" required>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-slate-700">Password</label>
+              <button type="button" onclick="openForgotPasswordModal('admin')" class="text-xs text-brand-600 hover:text-brand-800 font-semibold">Forgot Password?</button>
+            </div>
+            <input type="password" id="admin-input-pwd" value="kalvi123" placeholder="kalvi123" class="w-full px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none" required>
+          </div>
+          <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-lock"></i>
+            <span>Login to Admin Dashboard</span>
+          </button>
+          <p class="text-center text-[11px] text-slate-400">Official Admin credentials: <code class="text-slate-700 font-bold">kalvi@transport / kalvi123</code></p>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- ==================== 2. ADMIN PORTAL VIEW ==================== -->
+    <div id="view-admin" class="space-y-6 hidden">
+
+      <!-- SECTION: DASHBOARD -->
+      <section id="sec-dashboard" class="space-y-6">
+        <!-- Top Stats Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm card-hover">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+              <span>Total Students</span>
+              <i class="fa-solid fa-users text-blue-500"></i>
+            </div>
+            <div class="mt-2 text-2xl font-black text-slate-900" id="stat-total-students">40</div>
+            <p class="text-[11px] text-slate-500 mt-1">Across 30 Erode stops</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm card-hover">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+              <span>Present Today</span>
+              <i class="fa-solid fa-user-check text-emerald-500"></i>
+            </div>
+            <div class="mt-2 text-2xl font-black text-emerald-600" id="stat-present-students">--</div>
+            <p class="text-[11px] text-slate-500 mt-1" id="stat-present-pct">--% attendance</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm card-hover">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+              <span>Authorized</span>
+              <i class="fa-solid fa-shield-halved text-amber-500"></i>
+            </div>
+            <div class="mt-2 text-2xl font-black text-amber-600" id="stat-authorized-students">--</div>
+            <p class="text-[11px] text-slate-500 mt-1">Paid via Student Portal</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm card-hover">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+              <span>Boarded Seats</span>
+              <i class="fa-solid fa-bus-simple text-purple-500"></i>
+            </div>
+            <div class="mt-2 text-2xl font-black text-purple-600" id="stat-boarded-students">--</div>
+            <p class="text-[11px] text-slate-500 mt-1" id="stat-capacity-display">out of 42 seats</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm card-hover">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+              <span>Fees Collected</span>
+              <i class="fa-solid fa-indian-rupee-sign text-emerald-600"></i>
+            </div>
+            <div class="mt-2 text-2xl font-black text-emerald-700" id="stat-fees-collected">₹--</div>
+            <p class="text-[11px] text-emerald-600 font-semibold mt-1" id="stat-paid-count">-- paid</p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm card-hover">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+              <span>Pending Dues</span>
+              <i class="fa-solid fa-clock-rotate-left text-rose-500"></i>
+            </div>
+            <div class="mt-2 text-2xl font-black text-rose-600" id="stat-fees-pending">₹--</div>
+            <p class="text-[11px] text-rose-500 font-semibold mt-1" id="stat-unpaid-count">-- pending</p>
+          </div>
+        </div>
+
+        <!-- Fleet Status, Quick Actions & Road Network -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Bus Fleet Status Card (Only Mini Bus and Standard Bus) -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-slate-800 text-base flex items-center space-x-2">
+                <i class="fa-solid fa-van-shuttle text-amber-500"></i>
+                <span>College Bus Fleet Status</span>
+              </h3>
+              <span class="text-xs bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded">3 Active</span>
+            </div>
+            <!-- Dynamic Bus Cards from JS -->
+            <div class="space-y-3" id="dashboard-buses-container"></div>
+            <!-- Boarded Seats Explanation -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+              <div class="font-bold text-slate-800 flex items-center space-x-1.5">
+                <i class="fa-solid fa-circle-info text-blue-500"></i>
+                <span>Boarded Seats Calculation:</span>
+              </div>
+              <p class="text-[11px] leading-relaxed">
+                Allocated strictly by Dijkstra shortest-path optimization. Only students with confirmed fee clearance and active attendance board, respecting bus seat capacities (Mini Bus: 12 seats, Standard Bus: 15 seats).
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick Navigation Actions -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-800 text-base flex items-center space-x-2">
+              <i class="fa-solid fa-bolt text-amber-500"></i>
+              <span>Quick Dispatch Actions</span>
+            </h3>
+            <div class="grid grid-cols-1 gap-2.5">
+              <button onclick="switchAdminTab('routes'); triggerRunRoutePlan();" class="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold text-sm shadow-sm flex items-center justify-between">
+                <span class="flex items-center space-x-2">
+                  <i class="fa-solid fa-route"></i>
+                  <span>Run Dijkstra Route Planning</span>
+                </span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+              </button>
+
+              <button onclick="switchAdminTab('registration')" class="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl font-semibold text-sm border border-emerald-200 transition flex items-center justify-between">
+                <span class="flex items-center space-x-2">
+                  <i class="fa-solid fa-user-plus text-emerald-600"></i>
+                  <span>Student Registration (Signup New)</span>
+                </span>
+                <i class="fa-solid fa-arrow-right text-xs text-emerald-400"></i>
+              </button>
+
+              <button onclick="openBreakdownModal()" class="w-full py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-semibold text-sm border border-rose-200 transition flex items-center justify-between">
+                <span class="flex items-center space-x-2">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span>Bus Breakdown Simulation</span>
+                </span>
+                <i class="fa-solid fa-arrow-right text-xs text-rose-400"></i>
+              </button>
+
+              <button onclick="switchAdminTab('fees')" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-semibold text-sm transition flex items-center justify-between">
+                <span class="flex items-center space-x-2">
+                  <i class="fa-solid fa-file-invoice-dollar text-emerald-600"></i>
+                  <span>View Student Fee Audit Report</span>
+                </span>
+                <i class="fa-solid fa-arrow-right text-xs text-slate-400"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Road Network Topology Card (Erode Region Stops) -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-md space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-amber-400 text-base flex items-center space-x-2">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <span>Erode Road Network Topology</span>
+              </h3>
+              <span class="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded mono-font">CAMPUS + 30 Stops</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Kalvi College Campus connects to 30 stops near Erode across 3 distinct buses (10 separate stops per bus with zero overlap). Dijkstra algorithm computes optimal pickup sequences minimizing transit minutes.
+            </p>
+            <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700 space-y-2 text-xs text-slate-300">
+              <div class="flex justify-between border-b border-slate-700 pb-1">
+                <span>Campus Direct Outlets:</span>
+                <span class="text-amber-400 font-bold">Erode Bus Stand (10m), Solar (11m), Modakkurichi Town (13m)</span>
+              </div>
+              <div class="space-y-1 text-[11px]">
+                <div><span class="font-bold text-amber-300">Bus B01 (Mini Bus):</span> Erode Bus Stand, Brough Rd, GH Roundana, PS Park, Pallipalayam, Bhavani, Chithode... (10 stops)</div>
+                <div><span class="font-bold text-blue-300">Bus B02 (Standard Bus):</span> Solar Pirivu, Lakkapuram, Railway Stn, Marapalam, Thindal, Perundurai... (10 stops)</div>
+                <div><span class="font-bold text-emerald-300">Bus B03 (Standard Bus):</span> Modakkurichi Town, Elumathur, Sivagiri, Kodumudi, Chennimalai, Vijayamangalam... (10 stops)</div>
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-400 italic">
+              * Each bus serves 10 unique stopping locations around Erode.
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION: STUDENTS DIRECTORY (WITH PROMINENT ROLL NO SEARCH BAR) -->
+      <section id="sec-students" class="hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Student Transportation Directory</h3>
+              <p class="text-xs text-slate-500">Live roster of students across Erode pickup stops, attendance status, and pass clearance</p>
+            </div>
+          </div>
+
+          <!-- PROMINENT ROLL NO SEARCH BAR -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+              <div class="relative flex-1 w-full">
+                <i class="fa-solid fa-id-card absolute left-3.5 top-3.5 text-brand-600 text-sm"></i>
+                <input type="text" id="student-search-rollno" onkeyup="filterStudentsByRollNo()" placeholder="Search Student by Roll No (e.g. 25CSR265, 25CSR201, 25ITR201, 25ECR201)..." class="w-full pl-10 pr-4 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white shadow-sm font-bold">
+              </div>
+              <div class="flex items-center space-x-2 w-full sm:w-auto">
+                <button onclick="filterStudentsByRollNo()" class="flex-1 sm:flex-none px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center space-x-1.5">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <span>Search Roll No</span>
+                </button>
+                <button onclick="clearStudentRollNoSearch()" class="px-3.5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl transition">
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Secondary Filters: Bus & Fee Status -->
+            <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200 text-xs">
+              <span class="text-slate-500 font-semibold text-[11px]">Filters:</span>
+              <select id="filter-bus-select" onchange="filterStudentsTable()" class="py-1.5 px-3 text-xs rounded-lg border border-slate-300 focus:outline-none bg-white">
+                <option value="">All Buses (B01, B02, B03)</option>
+                <option value="B01">Bus B01 (Mini Bus)</option>
+                <option value="B02">Bus B02 (Standard Bus)</option>
+                <option value="B03">Bus B03 (Standard Bus)</option>
+              </select>
+              <select id="filter-stop-select" onchange="filterStudentsTable()" class="py-1.5 px-3 text-xs rounded-lg border border-slate-300 focus:outline-none bg-white max-w-xs">
+                <option value="">All Erode Stops (30 Stops)</option>
+              </select>
+              <select id="filter-paid-select" onchange="filterStudentsTable()" class="py-1.5 px-3 text-xs rounded-lg border border-slate-300 focus:outline-none bg-white">
+                <option value="">All Fee Status</option>
+                <option value="1">Paid (Authorized)</option>
+                <option value="0">Unpaid (Pending)</option>
+              </select>
+              <select id="filter-present-select" onchange="filterStudentsTable()" class="py-1.5 px-3 text-xs rounded-lg border border-slate-300 focus:outline-none bg-white">
+                <option value="">All Attendance</option>
+                <option value="1">Present</option>
+                <option value="0">Absent</option>
+              </select>
+              <span id="students-search-count-label" class="ml-auto text-[11px] font-bold text-slate-500"></span>
+            </div>
+          </div>
+
+          <!-- Students Table -->
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                  <th class="py-3 px-4">Roll Number</th>
+                  <th class="py-3 px-4">Student Name</th>
+                  <th class="py-3 px-4">Department</th>
+                  <th class="py-3 px-4 text-center">Bus</th>
+                  <th class="py-3 px-4">Assigned Stop (Erode)</th>
+                  <th class="py-3 px-4 text-center">Attendance</th>
+                  <th class="py-3 px-4 text-center">Transport Fee</th>
+                  <th class="py-3 px-4 text-center">Pass Status</th>
+                  <th class="py-3 px-4 text-center">Boarding</th>
+                </tr>
+              </thead>
+              <tbody id="students-table-body" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: STUDENT REGISTRATION (NEW MODULE ADDED FOR ADMIN) -->
+      <section id="sec-registration" class="hidden space-y-4">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div class="border-b border-slate-200 pb-4">
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 uppercase">Admin Registration</span>
+              <span class="text-xs text-slate-400">Institutional Student Signup</span>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mt-1 flex items-center space-x-2">
+              <i class="fa-solid fa-user-plus text-emerald-600"></i>
+              <span>New Student Transport Registration</span>
+            </h3>
+            <p class="text-xs text-slate-500">Register new students for college bus service. Generates Roll Number based login and password formula (Roll No @ Bus No).</p>
+          </div>
+
+          <!-- Registration Form -->
+          <form id="form-student-registration" onsubmit="handleStudentRegistration(event)" class="space-y-6 max-w-3xl">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Student Full Name -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Student Full Name <span class="text-rose-500">*</span></label>
+                <input type="text" id="reg-student-name" placeholder="e.g. S. Vignesh" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+              </div>
+
+              <!-- Department -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Department <span class="text-rose-500">*</span></label>
+                <select id="reg-department" onchange="autoSuggestRollNumber()" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white" required>
+                  <option value="Computer Science (CSE)">B.E. Computer Science (CSE)</option>
+                  <option value="Information Technology (IT)">B.Tech Information Technology (IT)</option>
+                  <option value="Electronics & Communication (ECE)">B.E. Electronics & Communication (ECE)</option>
+                  <option value="Mechanical Engineering (MECH)">B.E. Mechanical Engineering (MECH)</option>
+                  <option value="AI & Data Science (AIDS)">B.Tech AI & Data Science (AIDS)</option>
+                  <option value="Civil Engineering (CIVIL)">B.E. Civil Engineering (CIVIL)</option>
+                  <option value="Electrical & Electronics (EEE)">B.E. Electrical & Electronics (EEE)</option>
+                </select>
+              </div>
+
+              <!-- Roll Number (User ID) -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">
+                  Roll Number (User ID) <span class="text-rose-500">*</span>
+                  <span class="text-[10px] text-slate-400 font-normal">(e.g. 25CSR265)</span>
+                </label>
+                <input type="text" id="reg-roll-no" onkeyup="updateRegPasswordPreview()" placeholder="e.g. 25CSR265" class="w-full px-3.5 py-2 text-sm uppercase font-mono font-bold border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+              </div>
+
+              <!-- Assigned Bus (Explicitly Mini Bus or Standard Bus) -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Assigned College Bus <span class="text-rose-500">*</span></label>
+                <select id="reg-bus-id" onchange="onBusSelectForRegistration()" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white" required>
+                  <option value="B01">Bus B01 - Mini Bus (12 Seats)</option>
+                  <option value="B02">Bus B02 - Standard Bus (15 Seats)</option>
+                  <option value="B03">Bus B03 - Standard Bus (15 Seats)</option>
+                </select>
+              </div>
+
+              <!-- Pickup Stop (Filtered by selected bus) -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Assigned Pickup Stop (Erode Region) <span class="text-rose-500">*</span></label>
+                <select id="reg-stop-id" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white" required>
+                  <!-- Dynamically populated from JS -->
+                </select>
+              </div>
+
+              <!-- Academic Semester -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Academic Year / Semester</label>
+                <select id="reg-semester" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+                  <option value="6th Sem">3rd Year (6th Semester)</option>
+                  <option value="4th Sem">2nd Year (4th Semester)</option>
+                  <option value="2nd Sem">1st Year (2nd Semester)</option>
+                  <option value="8th Sem">4th Year (8th Semester)</option>
+                </select>
+              </div>
+
+              <!-- Fee Status -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Initial Transport Fee Status</label>
+                <select id="reg-fee-paid" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white">
+                  <option value="0">Unpaid / Pending (Student pays online: ₹2,500)</option>
+                  <option value="1">Paid (Authorized pass immediately: ₹2,500)</option>
+                </select>
+              </div>
+
+              <!-- Generated Password Preview -->
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-center">
+                <span class="text-[11px] text-slate-500 font-semibold uppercase">Auto-Generated Password:</span>
+                <span id="reg-password-preview" class="font-mono text-sm font-bold text-emerald-700 mt-0.5">25CSR265@B01</span>
+                <span class="text-[10px] text-slate-400">Formula: (Roll No @ Bus No)</span>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-2">
+              <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center space-x-2">
+                <i class="fa-solid fa-user-check"></i>
+                <span>Register & Create Student Signup</span>
+              </button>
+              <button type="reset" onclick="resetRegistrationForm()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl">
+                Reset
+              </button>
+            </div>
+          </form>
+
+          <!-- Registration Result Notification Card -->
+          <div id="reg-success-card" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-2">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: ROUTE PLANNING (DIJKSTRA) -->
+      <section id="sec-routes" class="hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 uppercase">Dijkstra + Nearest Stop Policy</span>
+                <span class="text-xs text-slate-400">Erode Road Network</span>
+              </div>
+              <h3 class="text-xl font-black text-slate-900 mt-1">College Bus Route Optimization</h3>
+              <p class="text-xs text-slate-500">Shortest travel routes starting from CAMPUS, serving Erode stops with waiting students, and returning to CAMPUS</p>
+            </div>
+            <button onclick="triggerRunRoutePlan()" id="btn-run-plan" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center space-x-2 transition">
+              <i class="fa-solid fa-play"></i>
+              <span>Generate / Refresh Route Plans</span>
+            </button>
+          </div>
+
+          <!-- Planned Buses Grid -->
+          <div id="route-plans-container" class="space-y-4">
+            <div class="text-center py-12 text-slate-400">
+              <i class="fa-solid fa-route text-4xl mb-2 text-slate-300"></i>
+              <p class="text-sm">Click "Generate / Refresh Route Plans" to calculate bus trips using Dijkstra shortest path algorithm.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: FLEET & BREAKDOWN -->
+      <section id="sec-fleet" class="hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Bus Fleet & Breakdown Emergency Manager</h3>
+              <p class="text-xs text-slate-500">Monitor vehicle capacity, drivers, and handle breakdowns with zero passenger loss</p>
+            </div>
+            <button onclick="openBreakdownModal()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center space-x-1.5">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>Report Bus Breakdown</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="fleet-cards-grid">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- Breakdown Response Output Log -->
+          <div id="breakdown-log-box" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: FEE AUDIT REPORT (READ-ONLY FOR ADMIN) -->
+      <section id="sec-fees" class="hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Transport Fee Audit & Verification</h3>
+              <p class="text-xs text-slate-500">Audit-only view: Fee records are paid directly by students online. Admins cannot alter student fee records.</p>
+            </div>
+            <div class="flex items-center space-x-3 text-xs">
+              <div class="px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
+                Semester Fee: ₹2,500.00
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+              <div class="text-xs text-emerald-700 font-bold uppercase">Total Collected Online</div>
+              <div class="text-2xl font-black text-emerald-800 mt-1" id="fee-report-collected">₹--</div>
+              <div class="text-[11px] text-emerald-600 mt-1" id="fee-report-paid-count">-- Students Paid</div>
+            </div>
+            <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+              <div class="text-xs text-rose-700 font-bold uppercase">Outstanding Dues</div>
+              <div class="text-2xl font-black text-rose-800 mt-1" id="fee-report-pending">₹--</div>
+              <div class="text-[11px] text-rose-600 mt-1" id="fee-report-unpaid-count">-- Students Pending</div>
+            </div>
+            <div class="p-4 rounded-xl bg-blue-50 border border-blue-200">
+              <div class="text-xs text-blue-700 font-bold uppercase">Total Expected Collection</div>
+              <div class="text-2xl font-black text-blue-800 mt-1" id="fee-report-expected">₹1,00,000.00</div>
+              <div class="text-[11px] text-blue-600 mt-1" id="fee-report-total-count">40 Registered Students</div>
+            </div>
+          </div>
+
+          <!-- Full Table (Read-Only) -->
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px]">
+                  <th class="py-3 px-4">Roll Number</th>
+                  <th class="py-3 px-4">Name</th>
+                  <th class="py-3 px-4">Pickup Stop (Erode)</th>
+                  <th class="py-3 px-4">Fee Amount</th>
+                  <th class="py-3 px-4 text-center">Status</th>
+                  <th class="py-3 px-4">Transaction Audit</th>
+                  <th class="py-3 px-4 text-right">Payment Verification</th>
+                </tr>
+              </thead>
+              <tbody id="fee-records-table-body" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: UNALLOCATED STUDENTS -->
+      <section id="sec-unallocated" class="hidden space-y-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
+                <span>Unallocated Students Monitor</span>
+              </h3>
+              <p class="text-xs text-slate-500">Eligible students (Present & Authorized) who could not board due to bus capacity limits</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700" id="unallocated-badge-count">0 Unallocated</span>
+          </div>
+
+          <div id="unallocated-list-container">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+
+    <!-- ==================== 3. STUDENT PORTAL VIEW ==================== -->
+    <div id="view-student" class="hidden space-y-6">
+
+      <!-- Student Welcome Banner -->
+      <div class="bg-gradient-to-r from-kalvi-navy via-slate-900 to-slate-800 text-white p-6 sm:p-8 rounded-3xl shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400 text-3xl font-black shadow-inner">
+              <i class="fa-solid fa-id-badge"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-400/20 text-amber-300 border border-amber-400/30">Registered Student</span>
+                <span id="portal-student-id" class="text-xs text-slate-300 mono-font font-bold">25CSR201</span>
+              </div>
+              <h2 id="portal-student-name" class="text-2xl font-black text-white mt-1">Student Name</h2>
+              <p id="portal-student-dept" class="text-xs text-slate-300">B.E. Computer Science &bull; 6th Semester</p>
+            </div>
+          </div>
+
+          <!-- Student Self-Attendance Toggle Card -->
+          <div class="bg-slate-800/90 border border-slate-700 p-3.5 rounded-2xl flex items-center space-x-3 shadow-lg">
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase font-semibold">Today's Attendance</div>
+              <div id="banner-attendance-status" class="text-sm font-bold text-emerald-400 flex items-center space-x-1">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="banner-att-text">PRESENT</span>
+              </div>
+            </div>
+            <button onclick="toggleStudentSelfAttendance()" id="btn-self-attendance" class="px-3.5 py-2 text-xs font-bold rounded-xl bg-slate-700 hover:bg-slate-600 text-white transition flex items-center space-x-1.5 border border-slate-600 shadow-sm">
+              <i class="fa-solid fa-clipboard-user text-amber-400"></i>
+              <span id="btn-self-att-label">Change to Absent</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Portal Grid: 1. Fee Card & Payment, 2. Transport Pass, 3. Pickup Route -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 1. TRANSPORT FEE STATUS & PAYMENT CARD -->
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Transport Clearance</span>
+                <h3 class="text-xl font-bold text-slate-900 flex items-center space-x-2 mt-0.5">
+                  <i class="fa-solid fa-credit-card text-brand-600"></i>
+                  <span>College Transport Fee</span>
+                </h3>
+              </div>
+              <div id="portal-fee-status-badge">
+                <!-- Status Badge Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Fee Details & Amount Display -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <span class="text-xs text-slate-500 font-medium">Semester Fee Amount</span>
+                <div class="text-2xl font-black text-slate-900 mt-1">₹2,500.00</div>
+                <span class="text-[11px] text-slate-400">Academic Year 2026-27</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <span class="text-xs text-slate-500 font-medium">Pass Eligibility</span>
+                <div id="portal-fee-eligibility" class="text-sm font-bold text-slate-800 mt-2">--</div>
+                <span class="text-[11px] text-slate-400">All Erode College Stops</span>
+              </div>
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <span class="text-xs text-slate-500 font-medium">Payment Record</span>
+                <div id="portal-fee-method" class="text-sm font-bold text-slate-800 mt-2">--</div>
+                <span id="portal-fee-txnid" class="text-[11px] text-slate-400 truncate block">--</span>
+              </div>
+            </div>
+
+            <!-- Available Payment Options Grid (Visible when unpaid) -->
+            <div id="portal-payment-options-box" class="mt-6 space-y-3">
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Available Payment Options:</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/50 text-center space-y-1">
+                  <i class="fa-solid fa-qrcode text-emerald-600 text-lg"></i>
+                  <div class="text-xs font-bold text-slate-800">UPI QR Code</div>
+                  <span class="text-[10px] text-slate-500 block">Instant Scan</span>
+                </div>
+                <div class="p-3 rounded-xl border border-blue-200 bg-blue-50/50 text-center space-y-1">
+                  <i class="fa-solid fa-mobile-screen text-blue-600 text-lg"></i>
+                  <div class="text-xs font-bold text-slate-800">GPay / PhonePe</div>
+                  <span class="text-[10px] text-slate-500 block">UPI Direct</span>
+                </div>
+                <div class="p-3 rounded-xl border border-purple-200 bg-purple-50/50 text-center space-y-1">
+                  <i class="fa-solid fa-credit-card text-purple-600 text-lg"></i>
+                  <div class="text-xs font-bold text-slate-800">Debit / Credit Card</div>
+                  <span class="text-[10px] text-slate-500 block">Visa &bull; RuPay</span>
+                </div>
+                <div class="p-3 rounded-xl border border-amber-200 bg-amber-50/50 text-center space-y-1">
+                  <i class="fa-solid fa-building-columns text-amber-600 text-lg"></i>
+                  <div class="text-xs font-bold text-slate-800">Net Banking</div>
+                  <span class="text-[10px] text-slate-500 block">All Indian Banks</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Informational Banner -->
+            <div id="portal-fee-notice" class="mt-4 p-4 rounded-2xl text-xs leading-relaxed flex items-start space-x-3">
+              <!-- Dynamically set in JS -->
+            </div>
+          </div>
+
+          <!-- Action Buttons Area -->
+          <div id="portal-fee-action-area" class="pt-4 border-t border-slate-100">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- 2. DIGITAL ID TRANSPORT PASS -->
+        <div class="bg-gradient-to-b from-slate-900 to-kalvi-navy text-white rounded-3xl shadow-xl p-6 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-amber-400/10 rounded-full blur-xl"></div>
+          
+          <div>
+            <!-- Header of Pass -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-graduation-cap text-amber-400 text-lg"></i>
+                <span class="text-xs font-bold tracking-widest text-slate-300 uppercase">Kalvi Pass</span>
+              </div>
+              <span class="text-[10px] mono-font px-2 py-0.5 rounded bg-slate-800 text-slate-300">2026-2027</span>
+            </div>
+
+            <!-- Pass Body -->
+            <div class="mt-6 text-center space-y-2">
+              <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 flex items-center justify-center text-slate-900 text-3xl font-black shadow-lg">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+              <h4 id="pass-student-name" class="text-lg font-bold text-white pt-2">Student Name</h4>
+              <p id="pass-student-id" class="text-xs text-amber-400 mono-font font-bold">25CSR201</p>
+            </div>
+
+            <!-- Badges -->
+            <div class="mt-6 space-y-2.5 text-xs">
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-800/80">
+                <span class="text-slate-400">Pass Authorization:</span>
+                <span id="pass-authorized-badge" class="font-bold">--</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-800/80">
+                <span class="text-slate-400">Daily Attendance:</span>
+                <span id="pass-present-badge" class="font-bold">--</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-800/80">
+                <span class="text-slate-400">Assigned Bus:</span>
+                <span id="pass-assigned-bus" class="font-bold text-amber-300">--</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5">
+                <span class="text-slate-400">Pickup Stop (Erode):</span>
+                <span id="pass-stop-id" class="font-bold text-white">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Pass Barcode Simulation -->
+          <div class="mt-6 pt-4 border-t border-slate-800 text-center">
+            <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Boarding QR Validation</div>
+            <div class="inline-block p-2 bg-white rounded-lg shadow">
+              <i class="fa-solid fa-qrcode text-3xl text-slate-900"></i>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3. PICKUP STOP & ROUTE DETAILS -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+          <i class="fa-solid fa-location-dot text-rose-500"></i>
+          <span>My Assigned Pickup Stop & Schedule</span>
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+            <span class="text-xs text-slate-500">Pickup Stop (Erode)</span>
+            <div id="portal-stop-name" class="text-base font-bold text-slate-900 mt-1">--</div>
+            <span id="portal-stop-landmark" class="text-xs text-slate-500 block mt-0.5">--</span>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+            <span class="text-xs text-slate-500">Transit to Campus</span>
+            <div id="portal-stop-distance" class="text-base font-bold text-brand-600 mt-1">-- Mins</div>
+            <span class="text-xs text-slate-400 block mt-0.5">Dijkstra shortest road distance</span>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+            <span class="text-xs text-slate-500">Morning Pickup Time</span>
+            <div class="text-base font-bold text-emerald-600 mt-1">07:45 AM</div>
+            <span class="text-xs text-slate-400 block mt-0.5">Expected Campus Arrival: 08:30 AM</span>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+            <span class="text-xs text-slate-500">Assigned Driver</span>
+            <div id="portal-driver-name" class="text-base font-bold text-slate-900 mt-1">R. Murugesan</div>
+            <span id="portal-driver-phone" class="text-xs text-slate-500 font-mono block mt-0.5">+91 98421 11201</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. FORGOT PASSWORD MODAL (ADMIN & STUDENT) -->
+  <div id="modal-forgot-password" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 p-6 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2 text-brand-600">
+          <i class="fa-solid fa-key text-lg"></i>
+          <h3 class="text-lg font-black text-slate-900">Forgot Password Recovery</h3>
+        </div>
+        <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Tab toggle in forgot password -->
+      <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-bold text-center">
+        <button type="button" onclick="switchForgotTab('student')" id="forgot-tab-student" class="py-2 rounded-lg bg-white shadow-sm text-slate-900 font-bold">
+          Student Recovery
+        </button>
+        <button type="button" onclick="switchForgotTab('admin')" id="forgot-tab-admin" class="py-2 rounded-lg text-slate-600 font-bold">
+          Admin Recovery
+        </button>
+      </div>
+
+      <!-- Student Recovery Form -->
+      <form id="forgot-form-student" onsubmit="handleForgotStudent(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Enter your Roll Number (User ID)</label>
+          <input type="text" id="forgot-roll-input" placeholder="e.g. 25CSR265, 25CSR201" class="w-full px-3.5 py-2 text-sm uppercase font-mono border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
+        </div>
+        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 space-y-1">
+          <p class="font-bold">Password Formula for Students:</p>
+          <p><code class="font-bold text-slate-800">[RollNo]@[BusNo]</code></p>
+          <p class="text-[11px] text-blue-800">Example: Roll No 25CSR265 assigned to Bus B01 has password <code class="font-bold">25CSR265@B01</code>.</p>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition">
+          Retrieve Password
+        </button>
+      </form>
+
+      <!-- Admin Recovery Form -->
+      <form id="forgot-form-admin" onsubmit="handleForgotAdmin(event)" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Enter Verification Keyphrase</label>
+          <input type="text" id="forgot-admin-code" placeholder="Enter 'kalvi' or 'transport'" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none" required>
+        </div>
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+          <strong>Official Administrator Credentials:</strong>
+          <p class="mt-1">User ID: <code class="font-bold text-slate-900">kalvi@transport</code></p>
+          <p>Password: <code class="font-bold text-slate-900">kalvi123</code></p>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow transition">
+          Verify & Reveal Credentials
+        </button>
+      </form>
+
+      <!-- Recovery Output Area -->
+      <div id="forgot-result-box" class="hidden p-3.5 rounded-xl text-xs space-y-1"></div>
+    </div>
+  </div>
+
+  <!-- 2. OFFICIAL FEE PAYMENT RECEIPT MODAL -->
+  <div id="modal-receipt" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden">
+      <!-- Receipt Printable Area -->
+      <div id="receipt-print-area" class="p-8 space-y-6">
+        <!-- Header -->
+        <div class="text-center border-b border-slate-200 pb-5">
+          <div class="flex items-center justify-center space-x-2">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-900 flex items-center justify-center text-xl font-black">
+              <i class="fa-solid fa-bus"></i>
+            </div>
+            <h2 class="text-xl font-black tracking-tight text-slate-900">KALVI COLLEGE TRANSPORT</h2>
+          </div>
+          <p class="text-xs text-slate-600 font-medium mt-1">Autonomous Institution &bull; Department of Transportation & Fleet Logistics</p>
+          <p class="text-[11px] text-slate-500">Campus Road, Erode Region, Tamil Nadu &bull; Ph: +91 424 2980100</p>
+          <div class="mt-2 inline-block px-3 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-xs uppercase tracking-wider">
+            Official E-Receipt &bull; Verified
+          </div>
+        </div>
+
+        <!-- Receipt Metadata Grid -->
+        <div class="grid grid-cols-2 gap-4 text-xs">
+          <div>
+            <span class="text-slate-500 font-medium">Receipt No:</span>
+            <div id="rcpt-no" class="font-bold mono-font text-slate-900">RCPT-2026-0001</div>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">Date & Time:</span>
+            <div id="rcpt-date" class="font-bold text-slate-900">--</div>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">Transaction ID:</span>
+            <div id="rcpt-txnid" class="font-bold mono-font text-slate-900">TXN-KLV-0000</div>
+          </div>
+          <div>
+            <span class="text-slate-500 font-medium">Payment Mode:</span>
+            <div id="rcpt-method" class="font-bold text-slate-900">UPI (Online)</div>
+          </div>
+        </div>
+
+        <!-- Student Particulars -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Student Roll / ID:</span>
+            <span id="rcpt-studentid" class="font-bold text-slate-900">25CSR201</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Student Full Name:</span>
+            <span id="rcpt-studentname" class="font-bold text-slate-900">--</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Department:</span>
+            <span id="rcpt-dept" class="font-bold text-slate-900">B.E. Computer Science (CSE)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Assigned Bus Stop:</span>
+            <span id="rcpt-stop" class="font-bold text-slate-900">--</span>
+          </div>
+        </div>
+
+        <!-- Fee Particulars Table -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+          <table class="w-full text-left">
+            <thead class="bg-slate-100 text-slate-700 font-bold">
+              <tr>
+                <th class="py-2.5 px-3">Description</th>
+                <th class="py-2.5 px-3 text-right">Amount (INR)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr>
+                <td class="py-2 px-3">Semester College Bus Transport Fee (2026-27)</td>
+                <td class="py-2 px-3 text-right font-medium">₹2,200.00</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-3">Bus Pass Processing & Dijkstra Route Optimization Charge</td>
+                <td class="py-2 px-3 text-right font-medium">₹300.00</td>
+              </tr>
+              <tr class="bg-slate-50 font-bold text-slate-900 text-sm">
+                <td class="py-2.5 px-3">Total Amount Paid</td>
+                <td class="py-2.5 px-3 text-right text-emerald-700">₹2,500.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Footer Seal & Status -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-200 text-xs">
+          <div class="space-y-0.5">
+            <div class="font-bold text-emerald-600 flex items-center space-x-1">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>TRANSPORT PASS AUTHORIZED</span>
+            </div>
+            <p class="text-[10px] text-slate-400">Valid for daily college bus pickup & drop</p>
+          </div>
+          <div class="text-right">
+            <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center text-[10px] text-slate-400 font-bold uppercase rotate-12">
+              Seal & Signed
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3 no-print">
+        <button onclick="closeReceiptModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800">
+          Close
+        </button>
+        <button onclick="window.print()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs shadow transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-print"></i>
+          <span>Print / Save PDF Receipt</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. BUS BREAKDOWN SIMULATION MODAL (Only Mini Bus or Standard Bus) -->
+  <div id="modal-breakdown" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 p-6 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2 text-rose-600">
+          <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+          <h3 class="text-lg font-black text-slate-900">Report Bus Breakdown</h3>
+        </div>
+        <button onclick="closeBreakdownModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 leading-relaxed">
+        Select the broken-down bus. The system keeps already-boarded students intact and immediately locates active replacement buses with available seat capacities.
+      </p>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Select Bus ID</label>
+        <select id="breakdown-bus-select" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500">
+          <option value="B01">B01 - Mini Bus (Capacity: 12)</option>
+          <option value="B02">B02 - Standard Bus (Capacity: 15)</option>
+          <option value="B03">B03 - Standard Bus (Capacity: 15)</option>
+        </select>
+      </div>
+
+      <div class="flex items-center justify-end space-x-3 pt-2">
+        <button onclick="closeBreakdownModal()" class="px-4 py-2 text-xs font-semibold text-slate-600">Cancel</button>
+        <button onclick="executeBusBreakdown()" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-md transition">
+          Confirm Breakdown & Reallocate
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SCRIPTS -->
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/admin.js"></script>
+  <script src="/static/js/student.js"></script>
+</body>
+</html>
