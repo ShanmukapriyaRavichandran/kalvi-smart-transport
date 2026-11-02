@@ -16,7 +16,6 @@
   -  **Driver Module**: Interactive turn-by-turn driving itinerary, stop checklist with passenger counts, morning pickup and evening drop route toggles.
   -  **Admin Dashboard**: Real-time fleet health metrics, student registration approvals, driver license verification, stop management, and live road condition hazard simulators.
 - **Dual Runtime Support**:
-  - **Vercel Cloud Deployment**: High-performance Serverless Function backend in Node.js/Express with zero external setup required.
   - **Local Java Engine**: Native high-concurrency Java 21 web server with SQLite database and virtual thread execution (`run.bat`).
 
 ---
