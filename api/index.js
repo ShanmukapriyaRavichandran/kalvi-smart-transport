@@ -11,7 +11,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Determine State File Location (use /tmp in serverless environments if available)
 const TMP_FILE = path.join('/tmp', 'kalvi_transport_state.json');
-const LOCAL_INITIAL = path.join(__dirname, '..', 'initial_data.json');
 
 function loadState() {
     try {
@@ -24,12 +23,14 @@ function loadState() {
     }
 
     try {
-        if (fs.existsSync(LOCAL_INITIAL)) {
-            const data = fs.readFileSync(LOCAL_INITIAL, 'utf-8');
-            return JSON.parse(data);
-        }
+        // Direct require so Vercel NFT bundles initial_data.json automatically
+        return require('./initial_data.json');
     } catch (e) {
-        console.error('Error reading initial_data.json', e);
+        try {
+            return require('../initial_data.json');
+        } catch (_) {
+            console.error('Error requiring initial_data.json', e);
+        }
     }
 
     return {
@@ -74,7 +75,6 @@ function haversineKm(lat1, lon1, lat2, lon2) {
 }
 
 function fetchOsrm(waypoints) {
-    // waypoints is array of [lat, lng]
     if (!waypoints || waypoints.length < 2) return Promise.resolve([]);
     const coordsStr = waypoints.map(w => `${w[1].toFixed(5)},${w[0].toFixed(5)}`).join(';');
     if (osrmCache.has(coordsStr)) {
@@ -84,7 +84,7 @@ function fetchOsrm(waypoints) {
     const url = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=false`;
 
     return new Promise(resolve => {
-        const req = https.get(url, { timeout: 4000 }, res => {
+        const req = https.get(url, { timeout: 3500 }, res => {
             let data = '';
             res.on('data', chunk => (data += chunk));
             res.on('end', () => {
@@ -223,10 +223,17 @@ function doesConditionApplyToBusLeg(busId, condKey, from, to) {
 }
 
 // ==========================================
-//                 AUTH APIS
+//                 ROUTER
 // ==========================================
+const router = express.Router();
 
-app.post('/api/auth/login', (req, res) => {
+// Health check
+router.get('/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Auth Endpoints
+router.post('/auth/login', (req, res) => {
     const body = req.body || {};
     const role = (body.role || 'STUDENT').toUpperCase();
     const username = (body.username || body.roll_no || body.driver_id || body.identifier || '').trim();
@@ -312,7 +319,7 @@ app.post('/api/auth/login', (req, res) => {
     });
 });
 
-app.post('/api/auth/register', (req, res) => {
+router.post('/auth/register', (req, res) => {
     const b = req.body || {};
     const roll = (b.roll_no || '').trim().toUpperCase();
     const name = (b.full_name || '').trim();
@@ -331,7 +338,6 @@ app.post('/api/auth/register', (req, res) => {
         return res.status(400).json({ success: false, message: 'Student roll number already exists.' });
     }
 
-    // Find assigned bus for this stop
     const matchingStop = db.stops.find(s => s.stop_name.toLowerCase() === stop.toLowerCase());
     const busId = matchingStop ? matchingStop.bus_route : 'B01';
 
@@ -361,7 +367,7 @@ app.post('/api/auth/register', (req, res) => {
     });
 });
 
-app.post('/api/driver/register', (req, res) => {
+router.post('/driver/register', (req, res) => {
     const b = req.body || {};
     const driverId = (b.driver_id || '').trim();
     const name = (b.full_name || b.name || '').trim();
@@ -403,11 +409,8 @@ app.post('/api/driver/register', (req, res) => {
     });
 });
 
-// ==========================================
-//             STUDENT PORTAL APIS
-// ==========================================
-
-app.get('/api/student/dashboard', (req, res) => {
+// Student Portal APIs
+router.get('/student/dashboard', (req, res) => {
     const roll = (req.query.roll_no || '').trim().toUpperCase();
     if (!roll) {
         return res.status(400).json({ error: 'roll_no is required' });
@@ -437,7 +440,7 @@ app.get('/api/student/dashboard', (req, res) => {
     });
 });
 
-app.post('/api/student/update-stop', (req, res) => {
+router.post('/student/update-stop', (req, res) => {
     const body = req.body || {};
     const roll = (body.roll_no || '').trim().toUpperCase();
     const stopName = (body.stop_name || '').trim();
@@ -461,11 +464,8 @@ app.post('/api/student/update-stop', (req, res) => {
     res.json({ success: true, message: 'Pickup stop updated successfully' });
 });
 
-// ==========================================
-//             DRIVER MODULE APIS
-// ==========================================
-
-app.get('/api/driver/route', (req, res) => {
+// Driver Module APIs
+router.get('/driver/route', (req, res) => {
     const busId = (req.query.bus_id || 'B01').trim().toUpperCase();
     const shift = (req.query.shift || 'MORNING').trim().toUpperCase();
 
@@ -490,321 +490,311 @@ app.get('/api/driver/route', (req, res) => {
     });
 });
 
-// ==========================================
-//        ROUTE OPTIMIZATION (DIJKSTRA)
-// ==========================================
-
-app.get('/api/routes/optimize', async (req, res) => {
-    const busId = (req.query.bus_id || 'B01').trim().toUpperCase();
-    let shift = (req.query.shift || 'MORNING').trim().toUpperCase();
-    if (shift !== 'MORNING' && shift !== 'EVENING') {
-        shift = 'MORNING';
-    }
-
-    const stopRows = db.stops
-        .filter(s => s.bus_route.toUpperCase() === busId)
-        .sort((a, b) => Number(a.stop_order) - Number(b.stop_order));
-
-    const stopCoords = getAllCoordinates();
-    const stopNames = [];
-    const displayStops = [];
-
-    const campusDepot = {
-        stop_id: 'CAMPUS',
-        stop_name: 'Kalvi College Campus (Depot)',
-        bus_route: busId,
-        latitude: 11.315,
-        longitude: 77.678,
-        morning_time: '08:30 AM',
-        evening_time: '05:00 PM',
-        stop_order: shift === 'MORNING' ? 11 : 0
-    };
-
-    if (shift === 'MORNING') {
-        for (const s of stopRows) {
-            stopNames.push(s.stop_name);
-            displayStops.push({ ...s });
-        }
-        stopNames.push('Kalvi College Campus');
-        displayStops.push(campusDepot);
-    } else {
-        stopNames.push('Kalvi College Campus');
-        displayStops.push(campusDepot);
-        for (let i = stopRows.length - 1; i >= 0; i--) {
-            stopNames.push(stopRows[i].stop_name);
-            displayStops.push({ ...stopRows[i] });
-        }
-    }
-
-    // Active conditions & incidents
-    const activeIncidents = (db.incidents || []).filter(i => Number(i.is_active) === 1);
-    const activeConditions = (db.simulated_conditions || []).filter(c => Number(c.is_enabled) === 1);
-
-    // Affected segments
-    const affectedSegments = [];
-    let isRoadBlockActive = false;
-
-    for (const inc of activeIncidents) {
-        const isBlock = inc.incident_type === 'ROAD_BLOCK' || Number(inc.penalty_mins) >= 90000;
-        affectedSegments.push({
-            source: inc.road_source,
-            destination: inc.road_destination,
-            type: inc.incident_type,
-            colorCode: isBlock ? '#ef4444' : '#f97316',
-            icon: isBlock ? '🚧' : '⚠️',
-            penaltyMinutes: isBlock ? 99999 : Number(inc.penalty_mins),
-            isRoadBlock: isBlock,
-            description: inc.description
-        });
-        if (isBlock) isRoadBlockActive = true;
-    }
-
-    for (const cond of activeConditions) {
-        const isBlock = cond.condition_key === 'ROAD_BLOCK';
-        affectedSegments.push({
-            source: cond.affected_source,
-            destination: cond.affected_destination,
-            type: cond.condition_key,
-            colorCode: cond.color_code || '#f97316',
-            icon: cond.icon || '⚠️',
-            penaltyMinutes: isBlock ? 99999 : Number(cond.penalty_mins),
-            isRoadBlock: isBlock,
-            description: cond.description
-        });
-        if (isBlock) isRoadBlockActive = true;
-    }
-
-    // Build legs
-    let normalTotalTime = 0;
-    let normalTotalDist = 0.0;
-    let activeDelayPenalties = 0;
-    let routeHasDetour = false;
-    const legs = [];
-
-    for (let i = 0; i < stopNames.length - 1; i++) {
-        const from = stopNames[i];
-        const to = stopNames[i + 1];
-
-        const c1 = stopCoords[from] || [11.315, 77.678];
-        const c2 = stopCoords[to] || [11.341, 77.7172];
-
-        let baseDist = 3.0;
-        let baseTime = 5;
-
-        // Check road_edges
-        const edge = (db.road_edges || []).find(
-            e =>
-                (e.source.toLowerCase() === from.toLowerCase() && e.destination.toLowerCase() === to.toLowerCase()) ||
-                (e.destination.toLowerCase() === from.toLowerCase() && e.source.toLowerCase() === to.toLowerCase())
-        );
-
-        if (edge) {
-            baseTime = Number(edge.travel_time);
-            baseDist = Number(edge.distance_km || 3.0);
-        } else {
-            baseDist = Math.max(1.0, Math.round(haversineKm(c1[0], c1[1], c2[0], c2[1]) * 1.35 * 10.0) / 10.0);
-            baseTime = Math.max(2, Math.round(baseDist * 1.8));
+// Route Optimization API
+router.get('/routes/optimize', async (req, res) => {
+    try {
+        const busId = (req.query.bus_id || 'B01').trim().toUpperCase();
+        let shift = (req.query.shift || 'MORNING').trim().toUpperCase();
+        if (shift !== 'MORNING' && shift !== 'EVENING') {
+            shift = 'MORNING';
         }
 
-        const leg = {
-            legIndex: i,
-            fromStop: from,
-            toStop: to,
-            fromLat: c1[0],
-            fromLng: c1[1],
-            toLat: c2[0],
-            toLng: c2[1],
-            distanceKm: baseDist,
-            travelTimeMins: baseTime,
-            isAffected: false,
-            conditionType: null,
-            colorCode: null,
-            icon: null,
-            description: null,
-            penaltyMinutes: 0,
-            isRoadBlock: false,
-            hasDetour: false,
-            bypassWaypoints: []
-        };
+        const stopRows = db.stops
+            .filter(s => s.bus_route.toUpperCase() === busId)
+            .sort((a, b) => Number(a.stop_order) - Number(b.stop_order));
 
-        normalTotalTime += baseTime;
-        normalTotalDist += baseDist;
+        const stopCoords = getAllCoordinates();
+        const stopNames = [];
+        const displayStops = [];
 
-        const k1 = `${from}->${to}`.toLowerCase();
-        const k2 = `${to}->${from}`.toLowerCase();
-
-        for (const aff of affectedSegments) {
-            const affK1 = `${aff.source}->${aff.destination}`.toLowerCase();
-            const affK2 = `${aff.destination}->${aff.source}`.toLowerCase();
-            const matches =
-                k1 === affK1 ||
-                k1 === affK2 ||
-                k2 === affK1 ||
-                k2 === affK2 ||
-                doesConditionApplyToBusLeg(busId, aff.type, from, to);
-
-            if (matches) {
-                leg.isAffected = true;
-                leg.conditionType = aff.type;
-                leg.colorCode = aff.colorCode;
-                leg.icon = aff.icon;
-                leg.description = aff.description;
-                leg.penaltyMinutes = aff.penaltyMinutes;
-                leg.isRoadBlock = aff.isRoadBlock;
-                leg.hasDetour = true;
-                routeHasDetour = true;
-                leg.bypassWaypoints = getBypassWaypoints(busId, aff.type, from, to);
-                leg.bypassWaypoint = leg.bypassWaypoints.length > 0 ? leg.bypassWaypoints[0] : null;
-
-                if (leg.isRoadBlock) {
-                    activeDelayPenalties += 4;
-                } else {
-                    activeDelayPenalties += Math.max(3, Math.floor(aff.penaltyMinutes / 3));
-                }
-                break;
-            }
-        }
-
-        legs.push(leg);
-    }
-
-    // Normal Route
-    const normalRoute = {
-        pathNodes: [...stopNames],
-        totalTimeMinutes: normalTotalTime,
-        totalDistanceKm: Math.round(normalTotalDist * 10.0) / 10.0,
-        notes: ['Direct sequential pickup itinerary connecting all campus registered stops.']
-    };
-
-    // Optimized Route
-    const optNodes = [];
-    let optDist = normalTotalDist;
-
-    for (let i = 0; i < stopNames.length; i++) {
-        const node = stopNames[i];
-        if (i > 0 && routeHasDetour) {
-            const prevLeg = legs[i - 1];
-            if (prevLeg.hasDetour) {
-                optNodes.push(`${prevLeg.fromStop} (Detour avoiding ${prevLeg.conditionType})`);
-                optDist += 0.8;
-            }
-        }
-        optNodes.push(node);
-    }
-
-    const optimizedRoute = {
-        pathNodes: optNodes,
-        totalTimeMinutes: normalTotalTime + activeDelayPenalties,
-        totalDistanceKm: Math.round(optDist * 10.0) / 10.0,
-        notes: routeHasDetour
-            ? ['Dynamic alternative detour active around affected road; avoided delay and obstruction.']
-            : ['Normal route optimal and clear.']
-    };
-
-    const timeSavedMinutes = routeHasDetour ? Math.max(12, 25 - activeDelayPenalties) : 0;
-
-    // Fetch OSRM Geometries in parallel for each leg
-    const normalLegPromises = legs.map(leg =>
-        fetchOsrm([[leg.fromLat, leg.fromLng], [leg.toLat, leg.toLng]])
-    );
-
-    const detourLegPromises = legs.map(leg => {
-        if (leg.hasDetour && leg.bypassWaypoints && leg.bypassWaypoints.length > 0) {
-            const pts = [[leg.fromLat, leg.fromLng], ...leg.bypassWaypoints, [leg.toLat, leg.toLng]];
-            return fetchOsrm(pts);
-        }
-        return normalLegPromises[leg.legIndex];
-    });
-
-    const [normalLegsRes, detourLegsRes] = await Promise.all([
-        Promise.all(normalLegPromises),
-        Promise.all(detourLegPromises)
-    ]);
-
-    const normalGeometry = [];
-    for (const legCoords of normalLegsRes) {
-        if (normalGeometry.length === 0) {
-            normalGeometry.push(...legCoords);
-        } else {
-            for (let p = 1; p < legCoords.length; p++) {
-                normalGeometry.push(legCoords[p]);
-            }
-        }
-    }
-
-    const optimizedGeometry = [];
-    for (const legCoords of detourLegsRes) {
-        if (optimizedGeometry.length === 0) {
-            optimizedGeometry.push(...legCoords);
-        } else {
-            for (let p = 1; p < legCoords.length; p++) {
-                optimizedGeometry.push(legCoords[p]);
-            }
-        }
-    }
-
-    // Normal & Optimized Coords
-    const normalCoords = normalRoute.pathNodes.map(node => {
-        const c = stopCoords[node] || [11.315, 77.678];
-        return { node: node, lat: c[0], lng: c[1] };
-    });
-
-    const optimizedCoords = optimizedRoute.pathNodes.map(node => {
-        const cleanNode = node.includes('(') ? node.substring(0, node.indexOf('(')).trim() : node;
-        const c = stopCoords[cleanNode] || [11.315, 77.678];
-        return { node: node, lat: c[0], lng: c[1] };
-    });
-
-    // Affected Segments for display
-    const affectedSegList = affectedSegments.map(seg => {
-        const c1 = stopCoords[seg.source] || [11.341, 77.7172];
-        const c2 = stopCoords[seg.destination] || [11.3435, 77.721];
-        return {
-            ...seg,
-            srcLat: c1[0],
-            srcLng: c1[1],
-            dstLat: c2[0],
-            dstLng: c2[1]
-        };
-    });
-
-    res.json({
-        bus_id: busId,
-        shift: shift,
-        campus: {
+        const campusDepot = {
             stop_id: 'CAMPUS',
-            stop_name: 'Kalvi College Campus',
-            bus_route: 'ALL',
-            stop_order: 0,
+            stop_name: 'Kalvi College Campus (Depot)',
+            bus_route: busId,
             latitude: 11.315,
             longitude: 77.678,
-            morning_time: '08:15 AM',
+            morning_time: '08:30 AM',
             evening_time: '05:00 PM',
-            students_count: 0
-        },
-        stops: displayStops,
-        normal_route: normalRoute,
-        optimized_route: optimizedRoute,
-        legs: legs,
-        normal_geometry: normalGeometry,
-        optimized_geometry: optimizedGeometry,
-        normal_coords: normalCoords,
-        optimized_coords: optimizedCoords,
-        active_incidents: activeIncidents,
-        active_conditions: activeConditions,
-        all_conditions: db.simulated_conditions,
-        affected_segments: affectedSegList,
-        time_saved_minutes: timeSavedMinutes,
-        has_detour: routeHasDetour,
-        is_road_block_active: isRoadBlockActive
-    });
+            stop_order: shift === 'MORNING' ? 11 : 0
+        };
+
+        if (shift === 'MORNING') {
+            for (const s of stopRows) {
+                stopNames.push(s.stop_name);
+                displayStops.push({ ...s });
+            }
+            stopNames.push('Kalvi College Campus');
+            displayStops.push(campusDepot);
+        } else {
+            stopNames.push('Kalvi College Campus');
+            displayStops.push(campusDepot);
+            for (let i = stopRows.length - 1; i >= 0; i--) {
+                stopNames.push(stopRows[i].stop_name);
+                displayStops.push({ ...stopRows[i] });
+            }
+        }
+
+        const activeIncidents = (db.incidents || []).filter(i => Number(i.is_active) === 1);
+        const activeConditions = (db.simulated_conditions || []).filter(c => Number(c.is_enabled) === 1);
+
+        const affectedSegments = [];
+        let isRoadBlockActive = false;
+
+        for (const inc of activeIncidents) {
+            const isBlock = inc.incident_type === 'ROAD_BLOCK' || Number(inc.penalty_mins) >= 90000;
+            affectedSegments.push({
+                source: inc.road_source,
+                destination: inc.road_destination,
+                type: inc.incident_type,
+                colorCode: isBlock ? '#ef4444' : '#f97316',
+                icon: isBlock ? '🚧' : '⚠️',
+                penaltyMinutes: isBlock ? 99999 : Number(inc.penalty_mins),
+                isRoadBlock: isBlock,
+                description: inc.description
+            });
+            if (isBlock) isRoadBlockActive = true;
+        }
+
+        for (const cond of activeConditions) {
+            const isBlock = cond.condition_key === 'ROAD_BLOCK';
+            affectedSegments.push({
+                source: cond.affected_source,
+                destination: cond.affected_destination,
+                type: cond.condition_key,
+                colorCode: cond.color_code || '#f97316',
+                icon: cond.icon || '⚠️',
+                penaltyMinutes: isBlock ? 99999 : Number(cond.penalty_mins),
+                isRoadBlock: isBlock,
+                description: cond.description
+            });
+            if (isBlock) isRoadBlockActive = true;
+        }
+
+        let normalTotalTime = 0;
+        let normalTotalDist = 0.0;
+        let activeDelayPenalties = 0;
+        let routeHasDetour = false;
+        const legs = [];
+
+        for (let i = 0; i < stopNames.length - 1; i++) {
+            const from = stopNames[i];
+            const to = stopNames[i + 1];
+
+            const c1 = stopCoords[from] || [11.315, 77.678];
+            const c2 = stopCoords[to] || [11.341, 77.7172];
+
+            let baseDist = 3.0;
+            let baseTime = 5;
+
+            const edge = (db.road_edges || []).find(
+                e =>
+                    (e.source.toLowerCase() === from.toLowerCase() && e.destination.toLowerCase() === to.toLowerCase()) ||
+                    (e.destination.toLowerCase() === from.toLowerCase() && e.source.toLowerCase() === to.toLowerCase())
+            );
+
+            if (edge) {
+                baseTime = Number(edge.travel_time);
+                baseDist = Number(edge.distance_km || 3.0);
+            } else {
+                baseDist = Math.max(1.0, Math.round(haversineKm(c1[0], c1[1], c2[0], c2[1]) * 1.35 * 10.0) / 10.0);
+                baseTime = Math.max(2, Math.round(baseDist * 1.8));
+            }
+
+            const leg = {
+                legIndex: i,
+                fromStop: from,
+                toStop: to,
+                fromLat: c1[0],
+                fromLng: c1[1],
+                toLat: c2[0],
+                toLng: c2[1],
+                distanceKm: baseDist,
+                travelTimeMins: baseTime,
+                isAffected: false,
+                conditionType: null,
+                colorCode: null,
+                icon: null,
+                description: null,
+                penaltyMinutes: 0,
+                isRoadBlock: false,
+                hasDetour: false,
+                bypassWaypoints: []
+            };
+
+            normalTotalTime += baseTime;
+            normalTotalDist += baseDist;
+
+            const k1 = `${from}->${to}`.toLowerCase();
+            const k2 = `${to}->${from}`.toLowerCase();
+
+            for (const aff of affectedSegments) {
+                const affK1 = `${aff.source}->${aff.destination}`.toLowerCase();
+                const affK2 = `${aff.destination}->${aff.source}`.toLowerCase();
+                const matches =
+                    k1 === affK1 ||
+                    k1 === affK2 ||
+                    k2 === affK1 ||
+                    k2 === affK2 ||
+                    doesConditionApplyToBusLeg(busId, aff.type, from, to);
+
+                if (matches) {
+                    leg.isAffected = true;
+                    leg.conditionType = aff.type;
+                    leg.colorCode = aff.colorCode;
+                    leg.icon = aff.icon;
+                    leg.description = aff.description;
+                    leg.penaltyMinutes = aff.penaltyMinutes;
+                    leg.isRoadBlock = aff.isRoadBlock;
+                    leg.hasDetour = true;
+                    routeHasDetour = true;
+                    leg.bypassWaypoints = getBypassWaypoints(busId, aff.type, from, to);
+                    leg.bypassWaypoint = leg.bypassWaypoints.length > 0 ? leg.bypassWaypoints[0] : null;
+
+                    if (leg.isRoadBlock) {
+                        activeDelayPenalties += 4;
+                    } else {
+                        activeDelayPenalties += Math.max(3, Math.floor(aff.penaltyMinutes / 3));
+                    }
+                    break;
+                }
+            }
+
+            legs.push(leg);
+        }
+
+        const normalRoute = {
+            pathNodes: [...stopNames],
+            totalTimeMinutes: normalTotalTime,
+            totalDistanceKm: Math.round(normalTotalDist * 10.0) / 10.0,
+            notes: ['Direct sequential pickup itinerary connecting all campus registered stops.']
+        };
+
+        const optNodes = [];
+        let optDist = normalTotalDist;
+
+        for (let i = 0; i < stopNames.length; i++) {
+            const node = stopNames[i];
+            if (i > 0 && routeHasDetour) {
+                const prevLeg = legs[i - 1];
+                if (prevLeg.hasDetour) {
+                    optNodes.push(`${prevLeg.fromStop} (Detour avoiding ${prevLeg.conditionType})`);
+                    optDist += 0.8;
+                }
+            }
+            optNodes.push(node);
+        }
+
+        const optimizedRoute = {
+            pathNodes: optNodes,
+            totalTimeMinutes: normalTotalTime + activeDelayPenalties,
+            totalDistanceKm: Math.round(optDist * 10.0) / 10.0,
+            notes: routeHasDetour
+                ? ['Dynamic alternative detour active around affected road; avoided delay and obstruction.']
+                : ['Normal route optimal and clear.']
+        };
+
+        const timeSavedMinutes = routeHasDetour ? Math.max(12, 25 - activeDelayPenalties) : 0;
+
+        const normalLegPromises = legs.map(leg =>
+            fetchOsrm([[leg.fromLat, leg.fromLng], [leg.toLat, leg.toLng]])
+        );
+
+        const detourLegPromises = legs.map(leg => {
+            if (leg.hasDetour && leg.bypassWaypoints && leg.bypassWaypoints.length > 0) {
+                const pts = [[leg.fromLat, leg.fromLng], ...leg.bypassWaypoints, [leg.toLat, leg.toLng]];
+                return fetchOsrm(pts);
+            }
+            return normalLegPromises[leg.legIndex];
+        });
+
+        const [normalLegsRes, detourLegsRes] = await Promise.all([
+            Promise.all(normalLegPromises),
+            Promise.all(detourLegPromises)
+        ]);
+
+        const normalGeometry = [];
+        for (const legCoords of normalLegsRes) {
+            if (normalGeometry.length === 0) {
+                normalGeometry.push(...legCoords);
+            } else {
+                for (let p = 1; p < legCoords.length; p++) {
+                    normalGeometry.push(legCoords[p]);
+                }
+            }
+        }
+
+        const optimizedGeometry = [];
+        for (const legCoords of detourLegsRes) {
+            if (optimizedGeometry.length === 0) {
+                optimizedGeometry.push(...legCoords);
+            } else {
+                for (let p = 1; p < legCoords.length; p++) {
+                    optimizedGeometry.push(legCoords[p]);
+                }
+            }
+        }
+
+        const normalCoords = normalRoute.pathNodes.map(node => {
+            const c = stopCoords[node] || [11.315, 77.678];
+            return { node: node, lat: c[0], lng: c[1] };
+        });
+
+        const optimizedCoords = optimizedRoute.pathNodes.map(node => {
+            const cleanNode = node.includes('(') ? node.substring(0, node.indexOf('(')).trim() : node;
+            const c = stopCoords[cleanNode] || [11.315, 77.678];
+            return { node: node, lat: c[0], lng: c[1] };
+        });
+
+        const affectedSegList = affectedSegments.map(seg => {
+            const c1 = stopCoords[seg.source] || [11.341, 77.7172];
+            const c2 = stopCoords[seg.destination] || [11.3435, 77.721];
+            return {
+                ...seg,
+                srcLat: c1[0],
+                srcLng: c1[1],
+                dstLat: c2[0],
+                dstLng: c2[1]
+            };
+        });
+
+        res.json({
+            bus_id: busId,
+            shift: shift,
+            campus: {
+                stop_id: 'CAMPUS',
+                stop_name: 'Kalvi College Campus',
+                bus_route: 'ALL',
+                stop_order: 0,
+                latitude: 11.315,
+                longitude: 77.678,
+                morning_time: '08:15 AM',
+                evening_time: '05:00 PM',
+                students_count: 0
+            },
+            stops: displayStops,
+            normal_route: normalRoute,
+            optimized_route: optimizedRoute,
+            legs: legs,
+            normal_geometry: normalGeometry,
+            optimized_geometry: optimizedGeometry,
+            normal_coords: normalCoords,
+            optimized_coords: optimizedCoords,
+            active_incidents: activeIncidents,
+            active_conditions: activeConditions,
+            all_conditions: db.simulated_conditions,
+            affected_segments: affectedSegList,
+            time_saved_minutes: timeSavedMinutes,
+            has_detour: routeHasDetour,
+            is_road_block_active: isRoadBlockActive
+        });
+    } catch (err) {
+        console.error('Error in /routes/optimize:', err);
+        res.status(500).json({ error: 'Failed to optimize route', details: err.message });
+    }
 });
 
-// ==========================================
-//             ADMIN PORTAL APIS
-// ==========================================
-
-app.get('/api/admin/stats', (req, res) => {
+// Admin Portal APIs
+router.get('/admin/stats', (req, res) => {
     const verified = db.students.filter(s => Number(s.is_verified) === 1).length;
     const pending = db.students.filter(s => Number(s.is_verified) === 0).length;
     const pendingDrv = db.drivers.filter(d => Number(d.is_approved) === 0).length;
@@ -823,12 +813,11 @@ app.get('/api/admin/stats', (req, res) => {
     });
 });
 
-app.get('/api/admin/pending', (req, res) => {
-    const list = db.students.filter(s => Number(s.is_verified) === 0);
-    res.json(list);
+router.get('/admin/pending', (req, res) => {
+    res.json(db.students.filter(s => Number(s.is_verified) === 0));
 });
 
-app.post('/api/admin/verify', (req, res) => {
+router.post('/admin/verify', (req, res) => {
     const roll = ((req.body && req.body.roll_no) || '').trim().toUpperCase();
     const student = db.students.find(s => s.roll_no.toUpperCase() === roll);
     if (student) {
@@ -839,7 +828,7 @@ app.post('/api/admin/verify', (req, res) => {
     res.status(404).json({ success: false, message: 'Student not found' });
 });
 
-app.post('/api/admin/reject', (req, res) => {
+router.post('/admin/reject', (req, res) => {
     const roll = ((req.body && req.body.roll_no) || '').trim().toUpperCase();
     const idx = db.students.findIndex(s => s.roll_no.toUpperCase() === roll);
     if (idx !== -1) {
@@ -850,7 +839,7 @@ app.post('/api/admin/reject', (req, res) => {
     res.status(404).json({ success: false, message: 'Student not found' });
 });
 
-app.post('/api/admin/remove-student', (req, res) => {
+router.post('/admin/remove-student', (req, res) => {
     const roll = ((req.body && req.body.roll_no) || '').trim().toUpperCase();
     const idx = db.students.findIndex(s => s.roll_no.toUpperCase() === roll);
     if (idx !== -1) {
@@ -861,7 +850,7 @@ app.post('/api/admin/remove-student', (req, res) => {
     res.status(404).json({ success: false, message: 'Student not found' });
 });
 
-app.get('/api/admin/students', (req, res) => {
+router.get('/admin/students', (req, res) => {
     const bus = (req.query.bus || 'ALL').trim().toUpperCase();
     if (bus === 'ALL') {
         return res.json(db.students);
@@ -869,12 +858,11 @@ app.get('/api/admin/students', (req, res) => {
     res.json(db.students.filter(s => s.bus_id.toUpperCase() === bus));
 });
 
-app.get('/api/admin/pending-drivers', (req, res) => {
-    const list = db.drivers.filter(d => Number(d.is_approved) === 0);
-    res.json(list);
+router.get('/admin/pending-drivers', (req, res) => {
+    res.json(db.drivers.filter(d => Number(d.is_approved) === 0));
 });
 
-app.post('/api/admin/approve-driver', (req, res) => {
+router.post('/admin/approve-driver', (req, res) => {
     const id = ((req.body && req.body.driver_id) || '').trim().toLowerCase();
     const driver = db.drivers.find(d => d.driver_id.toLowerCase() === id);
     if (driver) {
@@ -885,7 +873,7 @@ app.post('/api/admin/approve-driver', (req, res) => {
     res.status(404).json({ success: false, message: 'Driver not found' });
 });
 
-app.post('/api/admin/reject-driver', (req, res) => {
+router.post('/admin/reject-driver', (req, res) => {
     const id = ((req.body && req.body.driver_id) || '').trim().toLowerCase();
     const idx = db.drivers.findIndex(d => d.driver_id.toLowerCase() === id);
     if (idx !== -1) {
@@ -896,11 +884,11 @@ app.post('/api/admin/reject-driver', (req, res) => {
     res.status(404).json({ success: false, message: 'Driver not found' });
 });
 
-app.get('/api/admin/drivers', (req, res) => {
+router.get('/admin/drivers', (req, res) => {
     res.json(db.drivers);
 });
 
-app.get('/api/admin/stops', (req, res) => {
+router.get('/admin/stops', (req, res) => {
     const sorted = [...(db.stops || [])].sort((a, b) => {
         if (a.bus_route < b.bus_route) return -1;
         if (a.bus_route > b.bus_route) return 1;
@@ -909,7 +897,7 @@ app.get('/api/admin/stops', (req, res) => {
     res.json(sorted);
 });
 
-app.post('/api/admin/add-stop', (req, res) => {
+router.post('/admin/add-stop', (req, res) => {
     const b = req.body || {};
     const name = (b.stop_name || '').trim();
     const bus = (b.bus_route || 'B01').trim().toUpperCase();
@@ -944,15 +932,15 @@ app.post('/api/admin/add-stop', (req, res) => {
     res.status(201).json({ success: true, message: 'Stop added successfully', stop: newStop });
 });
 
-app.get('/api/admin/buses', (req, res) => {
+router.get('/admin/buses', (req, res) => {
     res.json(db.buses);
 });
 
-app.get('/api/admin/incidents', (req, res) => {
+router.get('/admin/incidents', (req, res) => {
     res.json(db.incidents || []);
 });
 
-app.post('/api/admin/toggle-incident', (req, res) => {
+router.post('/admin/toggle-incident', (req, res) => {
     const id = parseInt(req.body && req.body.incident_id, 10);
     const inc = (db.incidents || []).find(i => i.id === id);
     if (inc) {
@@ -963,7 +951,7 @@ app.post('/api/admin/toggle-incident', (req, res) => {
     res.status(404).json({ success: false, message: 'Incident not found' });
 });
 
-app.post('/api/admin/add-incident', (req, res) => {
+router.post('/admin/add-incident', (req, res) => {
     const b = req.body || {};
     const src = (b.road_source || '').trim();
     const dst = (b.road_destination || '').trim();
@@ -988,11 +976,11 @@ app.post('/api/admin/add-incident', (req, res) => {
     res.status(201).json({ success: true, incident: newInc });
 });
 
-app.get('/api/admin/conditions', (req, res) => {
+router.get('/admin/conditions', (req, res) => {
     res.json(db.simulated_conditions || []);
 });
 
-app.post('/api/admin/toggle-condition', (req, res) => {
+router.post('/admin/toggle-condition', (req, res) => {
     const key = ((req.body && req.body.condition_key) || '').trim();
     const cond = (db.simulated_conditions || []).find(c => c.condition_key === key);
     if (cond) {
@@ -1003,5 +991,9 @@ app.post('/api/admin/toggle-condition', (req, res) => {
     res.status(404).json({ success: false, message: 'Condition not found' });
 });
 
-// Export Express app for Vercel Serverless Function
+// MOUNT ROUTER AT BOTH '/api' AND ROOT
+app.use('/api', router);
+app.use(router);
+
+// Export for Vercel Serverless Function
 module.exports = app;

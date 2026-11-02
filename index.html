@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalvi College Transport Management System | Autonomous Route Optimizer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS for OpenStreetMap & OSRM Real Road-Based Routing -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-brand">
+            <div class="logo-icon">🚌</div>
+            <div>
+                <h1 class="brand-title">KALVI SMART TRANSPORT</h1>
+                <p class="brand-subtitle">Autonomous Route Optimizer & Fleet System</p>
+            </div>
+        </div>
+
+        <!-- Role-Aware Navigation Pills -->
+        <div class="nav-pills" id="main-nav-pills">
+            <!-- Role-Specific Tabs (Dynamically activated after login) -->
+            <button class="nav-pill" onclick="switchPortal('student')" id="pill-student" style="display:none;">
+                🎓 Student Portal
+            </button>
+            <button class="nav-pill" onclick="switchPortal('driver')" id="pill-driver" style="display:none;">
+                🚌 Driver Module
+            </button>
+            <button class="nav-pill" onclick="switchPortal('admin')" id="pill-admin" style="display:none;">
+                🛡️ Admin Dashboard <span class="badge-pending" id="nav-pending-badge" style="display:none;">0</span>
+            </button>
+        </div>
+
+        <div class="nav-actions">
+            <!-- Active User Profile Pill -->
+            <div class="user-role-badge" id="nav-user-badge" style="display:none;">
+                <span class="status-dot"></span>
+                <span id="nav-user-label">Guest</span>
+            </div>
+
+            <button class="btn-api-key" onclick="openKeyModal()" title="Map & Routing Settings">
+                🗺️ Maps Config
+            </button>
+            <button class="btn-logout" id="btn-logout" onclick="logoutCurrentSession()" style="display:none;">
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+
+        <!-- ========================================================= -->
+        <!--        VIEW 1: ROLE-BASED LOGIN PORTAL                    -->
+        <!-- ========================================================= -->
+        <section id="portal-auth" class="portal-section active">
+            <div class="auth-card-container">
+                <div class="auth-card glass-panel">
+                    <div class="auth-header">
+                        <div class="portal-badge">SECURE ACCESS</div>
+                        <h2>Role-Based Authentication</h2>
+                        <p>Sign in to access your designated transport module</p>
+                    </div>
+
+                    <!-- Role Selector Tab Strip -->
+                    <div class="role-switch-strip">
+                        <button class="role-switch-btn active" id="btn-role-student" onclick="switchAuthRole('STUDENT')">
+                            🎓 Student
+                        </button>
+                        <button class="role-switch-btn" id="btn-role-driver" onclick="switchAuthRole('DRIVER')">
+                            🚌 Driver
+                        </button>
+                        <button class="role-switch-btn" id="btn-role-admin" onclick="switchAuthRole('ADMIN')">
+                            🛡️ Admin
+                        </button>
+                    </div>
+
+                    <!-- Student Login Form -->
+                    <form id="form-login-student" class="auth-role-form" onsubmit="handleStudentLogin(event)">
+                        <div class="form-group">
+                            <label for="student-roll">Roll Number</label>
+                            <input type="text" id="student-roll" placeholder="e.g. 26CSR001" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="student-pass">Password</label>
+                            <input type="password" id="student-pass" value="student123" required autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Sign In to Student Portal</button>
+                        <div class="auth-footer">
+                            <p>New Student? <a href="javascript:void(0)" onclick="openRegisterModal()">Register for Bus Transport</a></p>
+                            <div class="quick-credentials">
+                                <span>💡 Demo: Roll <code>26CSR001</code> | Pass: <code>student123</code></span>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Driver Login Form -->
+                    <form id="form-login-driver" class="auth-role-form" onsubmit="handleDriverLogin(event)" style="display:none;">
+                        <div class="form-group">
+                            <label for="driver-identifier">Driver ID or Registered Phone</label>
+                            <input type="text" id="driver-identifier" placeholder="e.g. driver1 or 9842111001" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="driver-pass">Password</label>
+                            <input type="password" id="driver-pass" value="driver123" required autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-block">Sign In to Driver Module</button>
+                        <div class="auth-footer">
+                            <p>New Driver? <a href="javascript:void(0)" onclick="showDriverSignupView()">Apply / Sign Up as Driver</a></p>
+                            <div class="quick-credentials">
+                                <span>💡 Demo Driver: <code>driver1</code> | Pass: <code>driver123</code></span>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Admin Login Form -->
+                    <form id="form-login-admin" class="auth-role-form" onsubmit="handleAdminLogin(event)" style="display:none;">
+                        <div class="form-group">
+                            <label for="admin-user">Administrator Username</label>
+                            <input type="text" id="admin-user" value="admin" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-pass">Password</label>
+                            <input type="password" id="admin-pass" value="admin123" required autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Access Admin Console</button>
+                        <div class="auth-footer">
+                            <div class="quick-credentials">
+                                <span>💡 Admin Creds: <code>admin</code> | Pass: <code>admin123</code></span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!--        VIEW 2: SEPARATE DRIVER SIGNUP PAGE                -->
+        <!-- ========================================================= -->
+        <section id="portal-driver-signup" class="portal-section">
+            <div class="auth-card-container">
+                <div class="auth-card glass-panel" style="max-width: 680px;">
+                    <div class="auth-header">
+                        <div class="portal-badge badge-warning">DRIVER ONBOARDING</div>
+                        <h2>Driver Signup & License Verification</h2>
+                        <p>Register as an official college transport driver. Applications require Administrator review and license verification before login is activated.</p>
+                    </div>
+
+                    <form id="driver-signup-form" onsubmit="handleDriverSignupSubmit(event)">
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="drv-signup-name">Full Name (As on Driving License)</label>
+                                <input type="text" id="drv-signup-name" placeholder="e.g. Shanmugaraj K" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="drv-signup-phone">Mobile Phone Number</label>
+                                <input type="tel" id="drv-signup-phone" placeholder="9842111001" pattern="[0-9]{10}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="drv-signup-license">Commercial Driving License (DL) Number</label>
+                                <input type="text" id="drv-signup-license" placeholder="e.g. TN-33-2018-004521" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="drv-signup-exp">Heavy Vehicle Experience (Years)</label>
+                                <input type="number" id="drv-signup-exp" min="1" max="40" value="5" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="drv-signup-bus">Preferred Bus Route</label>
+                                <select id="drv-signup-bus" class="form-select" required>
+                                    <option value="B01">Bus B01 - Erode North Corridor (Mini Bus)</option>
+                                    <option value="B02">Bus B02 - Erode South & West Corridor (Standard Bus)</option>
+                                    <option value="B03">Bus B03 - Erode Rural & Industrial Corridor (Standard Bus)</option>
+                                </select>
+                            </div>
+                            <div class="form-group col">
+                                <label for="drv-signup-id">Desired Driver Username / ID</label>
+                                <input type="text" id="drv-signup-id" placeholder="e.g. driver_kumar" required>
+                            </div>
+                        </div>
+
+                        <!-- Driving License Document Upload -->
+                        <div class="form-group">
+                            <label for="drv-signup-doc">Upload Driving License Document (Photo / PDF)</label>
+                            <div class="file-upload-box" id="license-drop-zone">
+                                <input type="file" id="drv-signup-doc" accept="image/*,.pdf" onchange="handleLicenseFileSelected(event)" style="display:none;">
+                                <div class="upload-inner" onclick="document.getElementById('drv-signup-doc').click()">
+                                    <span class="upload-icon">📄</span>
+                                    <span class="upload-prompt" id="license-file-prompt">Click to select Driving License image or PDF</span>
+                                    <span class="upload-hint">Supported formats: JPG, PNG, PDF (Max: 5MB)</span>
+                                </div>
+                            </div>
+                            <div id="license-preview-container" class="license-preview-strip" style="display:none;">
+                                <span class="badge badge-success">✓ File Attached</span>
+                                <span id="license-file-name" class="license-file-title">license.pdf</span>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="clearLicenseFile()">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="drv-signup-pass">Create Password</label>
+                                <input type="password" id="drv-signup-pass" placeholder="••••••••" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="drv-signup-pass2">Confirm Password</label>
+                                <input type="password" id="drv-signup-pass2" placeholder="••••••••" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning btn-block mt-3">Submit Driver Application for Verification</button>
+
+                        <div class="auth-footer">
+                            <p>Already registered? <a href="javascript:void(0)" onclick="showAuthView('DRIVER')">Back to Driver Sign In</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Driver Pending Verification Confirmation Screen -->
+            <div id="driver-pending-screen" class="pending-notice-container" style="display:none;">
+                <div class="glass-panel pending-card">
+                    <div class="pending-icon">⏳</div>
+                    <h3>Driver Application Submitted!</h3>
+                    <p class="pending-text">
+                        Thank you for registering. Your details and driving license document for Driver ID <strong id="pending-driver-id-display"></strong> have been submitted to the Transport Administration.
+                    </p>
+                    <div class="pending-details-box">
+                        <div class="detail-row"><span>Status:</span> <span class="badge badge-warning">Awaiting Administrator Approval</span></div>
+                        <div class="detail-row"><span>Verification Policy:</span> <span>Only drivers with approved licenses can access the driver navigation portal.</span></div>
+                    </div>
+                    <button class="btn btn-outline" onclick="showAuthView('DRIVER')">Return to Sign In</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!--        VIEW 3: STUDENT PORTAL                             -->
+        <!-- ========================================================= -->
+        <section id="portal-student" class="portal-section">
+            <!-- Student Pending Verification Notice View -->
+            <div id="student-pending-view" class="pending-notice-container" style="display:none;">
+                <div class="glass-panel pending-card">
+                    <div class="pending-icon">⏳</div>
+                    <h3>Student Registration: Awaiting Admin Approval</h3>
+                    <p class="pending-text">
+                        Your application for Roll Number <strong id="pending-roll-display"></strong> is saved in our database and awaiting transport admin approval.
+                    </p>
+                    <div class="pending-details-box">
+                        <div class="detail-row"><span>Status:</span> <span class="badge badge-warning">Pending Admin Verification</span></div>
+                        <div class="detail-row"><span>Policy:</span> <span>Your bus pass and route navigation will activate once approved.</span></div>
+                    </div>
+                    <button class="btn btn-outline" onclick="showAuthView('STUDENT')">Back to Login</button>
+                </div>
+            </div>
+
+            <!-- Student Dashboard (When Logged In & Verified) -->
+            <div id="student-dashboard-view" style="display:none;">
+                <div class="dashboard-header-bar">
+                    <div>
+                        <h2>Welcome, <span id="student-profile-name">Student</span>!</h2>
+                        <p id="student-profile-dept">Roll No: 26CSR001 | Computer Science & Engineering</p>
+                    </div>
+                    <div class="header-badges">
+                        <span class="badge badge-success">✅ Verified Passenger</span>
+                        <span class="badge badge-info" id="student-bus-badge">Bus B01</span>
+                    </div>
+                </div>
+
+                <div class="grid-layout-2col">
+                    <!-- Left Column: Bus Pass & Details -->
+                    <div class="glass-panel card">
+                        <div class="card-header">
+                            <h3>🎫 Digital Transport Pass</h3>
+                            <span class="card-tag">Kalvi College</span>
+                        </div>
+                        <div class="bus-pass-card">
+                            <div class="pass-chip"></div>
+                            <div class="pass-info-grid">
+                                <div>
+                                    <label>STUDENT NAME</label>
+                                    <h4 id="pass-name">-</h4>
+                                </div>
+                                <div>
+                                    <label>ROLL NUMBER</label>
+                                    <h4 id="pass-roll">-</h4>
+                                </div>
+                                <div>
+                                    <label>ASSIGNED BUS</label>
+                                    <h4 class="text-highlight" id="pass-bus">-</h4>
+                                </div>
+                                <div>
+                                    <label>BOARDING STOP</label>
+                                    <h4 id="pass-stop">-</h4>
+                                </div>
+                                <div>
+                                    <label>MORNING PICKUP</label>
+                                    <h4 id="pass-mtime">07:15 AM</h4>
+                                </div>
+                                <div>
+                                    <label>EVENING DROP</label>
+                                    <h4 id="pass-etime">05:45 PM</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boarding Stop Selection / Change Option -->
+                        <div class="glass-panel card mt-3" style="padding: 1.1rem; border: 1px solid rgba(59, 130, 246, 0.35); background: rgba(30, 41, 59, 0.75);">
+                            <div class="card-header" style="margin-bottom: 0.6rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--bg-card-border);">
+                                <h4 style="font-size: 0.95rem; font-weight: 700;">🚏 Boarding Stop Selection</h4>
+                                <span class="badge badge-primary" id="student-current-stop-badge">Current: -</span>
+                            </div>
+                            <p class="subtitle" style="font-size: 0.8rem; margin-bottom: 0.6rem;">Select any registered bus stop (automatically updated from database):</p>
+                            <div class="d-flex gap-2 align-center">
+                                <select id="student-stop-select" class="form-select" style="flex: 1; font-size: 0.85rem;">
+                                    <option value="">-- Select Stopping --</option>
+                                </select>
+                                <button class="btn btn-primary btn-sm" onclick="handleStudentChangeStop()">Update Stop</button>
+                            </div>
+                        </div>
+
+                        <div class="driver-contact-box mt-3">
+                            <div class="driver-avatar">👨‍✈️</div>
+                            <div>
+                                <div class="driver-title">Assigned Bus Driver</div>
+                                <div class="driver-name" id="student-driver-name">Shanmugaraj K</div>
+                                <div class="driver-phone" id="student-driver-phone">+91 98421 11001</div>
+                            </div>
+                        </div>
+
+                        <!-- Fellow Students at Stop -->
+                        <div class="fellow-passengers mt-3">
+                            <h4>👥 Fellow Students at Your Stop</h4>
+                            <div id="fellow-students-list" class="mini-list">
+                                <p class="text-muted">Loading fellow passengers...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Bus Route Map -->
+                    <div class="glass-panel card">
+                        <div class="card-header">
+                            <div>
+                                <h3>🗺️ OpenStreetMap & OSRM Real Road Route</h3>
+                                <p class="subtitle">Routes follow genuine road geometries with numbered stops</p>
+                            </div>
+                            <div class="d-flex align-center gap-2">
+                                <span class="badge badge-primary" id="student-map-route-title">B01 Corridor</span>
+                                <select id="student-shift-select" onchange="renderStudentShiftMap()" class="form-select inline-select">
+                                    <option value="MORNING">🌅 Morning Pickup (1 ➔ 10 ➔ Campus)</option>
+                                    <option value="EVENING">🌆 Evening Drop (Campus ➔ 10 ➔ 1)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="route-legend" style="padding: 0.5rem 1rem 0 1rem;">
+                            <span class="legend-item"><span class="legend-color normal-color"></span> Normal Route (Blue)</span>
+                            <span class="legend-item"><span class="legend-color opt-color"></span> Issue Detour / Optimized (Red)</span>
+                            <span class="legend-item"><span class="legend-color block-color"></span> Simulated Hazard</span>
+                        </div>
+                        <div id="student-map-container" class="map-box"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!--        VIEW 4: DRIVER MODULE                              -->
+        <!-- ========================================================= -->
+        <section id="portal-driver" class="portal-section">
+            <div class="driver-top-controls glass-panel">
+                <div class="bus-selector-group">
+                    <label for="driver-bus-select"><strong>Assigned Bus:</strong></label>
+                    <select id="driver-bus-select" onchange="loadDriverBusRoute()" class="form-select">
+                        <option value="B01">Bus B01 (Erode North - Mini Bus 30 Seater)</option>
+                        <option value="B02">Bus B02 (Erode South & West - 45 Seater)</option>
+                        <option value="B03">Bus B03 (Erode Rural & Industrial - 45 Seater)</option>
+                    </select>
+                    <label for="driver-shift-select" style="margin-left: 0.75rem;"><strong>Shift:</strong></label>
+                    <select id="driver-shift-select" onchange="loadDriverBusRoute()" class="form-select inline-select">
+                        <option value="MORNING">🌅 Morning Pickup (1 ➔ 10 ➔ Campus)</option>
+                        <option value="EVENING">🌆 Evening Drop (Campus ➔ 10 ➔ 1)</option>
+                    </select>
+                </div>
+                <div class="driver-stats-summary" id="driver-stats-bar">
+                    <span>Stops: <strong id="drv-stat-stops">10</strong></span>
+                    <span>Verified Pickups: <strong id="drv-stat-students">10</strong></span>
+                    <span>Departure: <strong id="drv-stat-departure">06:45 AM</strong></span>
+                </div>
+                <button class="btn btn-warning" onclick="openDriverReportModal()">⚠️ Report Road Hazard</button>
+            </div>
+
+            <!-- Live Hazard / Detour Alert Banner -->
+            <div id="driver-hazard-banner" class="alert-banner" style="display:none;">
+                <span class="alert-icon">⚠️</span>
+                <span id="driver-hazard-text">Road condition alert active. Dynamic alternative routing enabled!</span>
+            </div>
+
+            <div class="grid-layout-map-driver">
+                <!-- Map Display -->
+                <div class="glass-panel card map-card">
+                    <div class="card-header map-header">
+                        <div>
+                            <h3>🗺️ Driver Navigation: Real Road Geometry (OSRM)</h3>
+                            <p class="subtitle">Real road routing with numbered stops and dynamic alternative detour routing</p>
+                        </div>
+                        <div class="route-legend">
+                            <span class="legend-item"><span class="legend-color normal-color"></span> Normal Route (Blue)</span>
+                            <span class="legend-item"><span class="legend-color opt-color"></span> Issue Detour / Optimized (Red)</span>
+                            <span class="legend-item"><span class="legend-color block-color"></span> Blocked Road</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Toggle Bar on Driver Map Header -->
+                    <div class="quick-simulation-strip">
+                        <span class="strip-title">⚡ Quick Condition Simulation:</span>
+                        <div class="quick-toggle-chips" id="driver-quick-toggle-chips-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <div id="driver-map-container" class="map-box large-map"></div>
+
+                    <!-- Optimizer Comparison Bar -->
+                    <div class="optimizer-metrics-strip">
+                        <div class="opt-metric">
+                            <label>NORMAL ROUTE</label>
+                            <span id="drv-norm-time">-- mins</span> (<span id="drv-norm-dist">-- km</span>)
+                        </div>
+                        <div class="opt-arrow">➔</div>
+                        <div class="opt-metric highlight">
+                            <label>ROAD-OPTIMIZED DETOUR</label>
+                            <span id="drv-opt-time">-- mins</span> (<span id="drv-opt-dist">-- km</span>)
+                        </div>
+                        <div class="opt-saving">
+                            <label>DELAY PREVENTED</label>
+                            <span class="badge badge-success" id="drv-time-saved">-- mins saved</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stop Checklist and Passenger Roster -->
+                <div class="glass-panel card sidebar-card">
+                    <div class="tab-strip">
+                        <button class="tab-btn active" onclick="switchDriverTab('stops')">🚏 Scheduled Stops</button>
+                        <button class="tab-btn" onclick="switchDriverTab('passengers')">👥 Student Pickups</button>
+                    </div>
+
+                    <!-- Stops List Tab -->
+                    <div id="driver-tab-stops" class="driver-tab-content active">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Stop Name</th>
+                                        <th>Pickup Time</th>
+                                        <th>Students</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="driver-stops-tbody">
+                                    <tr><td colspan="4" class="text-center">Loading stops...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Passengers List Tab -->
+                    <div id="driver-tab-passengers" class="driver-tab-content">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Roll No</th>
+                                        <th>Name</th>
+                                        <th>Boarding Stop</th>
+                                        <th>Phone</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="driver-passengers-tbody">
+                                    <tr><td colspan="4" class="text-center">Loading passengers...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!--        VIEW 5: ADMIN DASHBOARD                            -->
+        <!-- ========================================================= -->
+        <section id="portal-admin" class="portal-section">
+            <div id="admin-dashboard-view">
+                <!-- Top Metric Cards -->
+                <div class="metrics-grid">
+                    <div class="metric-card glass-panel">
+                        <div class="metric-icon">🚌</div>
+                        <div>
+                            <div class="metric-val" id="metric-buses">3</div>
+                            <div class="metric-lbl">Total Buses</div>
+                        </div>
+                    </div>
+                    <div class="metric-card glass-panel">
+                        <div class="metric-icon">🚏</div>
+                        <div>
+                            <div class="metric-val" id="metric-stops">30</div>
+                            <div class="metric-lbl">Active Stops</div>
+                        </div>
+                    </div>
+                    <div class="metric-card glass-panel">
+                        <div class="metric-icon">🎓</div>
+                        <div>
+                            <div class="metric-val" id="metric-students">30</div>
+                            <div class="metric-lbl">Verified Students</div>
+                        </div>
+                    </div>
+                    <div class="metric-card glass-panel alert-card" onclick="switchAdminTab('pending-drivers')">
+                        <div class="metric-icon">👨‍✈️</div>
+                        <div>
+                            <div class="metric-val" id="metric-pending-drivers">0</div>
+                            <div class="metric-lbl">Pending Drivers</div>
+                        </div>
+                    </div>
+                    <div class="metric-card glass-panel alert-card" onclick="switchAdminTab('pending-students')">
+                        <div class="metric-icon">⏳</div>
+                        <div>
+                            <div class="metric-val" id="metric-pending">0</div>
+                            <div class="metric-lbl">Pending Students</div>
+                        </div>
+                    </div>
+                    <div class="metric-card glass-panel" onclick="switchAdminTab('conditions')">
+                        <div class="metric-icon">🚦</div>
+                        <div>
+                            <div class="metric-val" id="metric-conditions">0</div>
+                            <div class="metric-lbl">Active Conditions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Tabs -->
+                <div class="admin-tab-nav">
+                    <button class="adm-tab active" onclick="switchAdminTab('optimizer')" id="adm-tab-optimizer">
+                        🗺️ Road-Based Route Optimizer
+                    </button>
+                    <button class="adm-tab" onclick="switchAdminTab('conditions')" id="adm-tab-conditions">
+                        🚦 Simulated Road Conditions
+                    </button>
+                    <button class="adm-tab" onclick="switchAdminTab('pending-drivers')" id="adm-tab-pending-drivers">
+                        👨‍✈️ Driver Approvals <span class="badge-pending" id="tab-pending-drivers-count">0</span>
+                    </button>
+                    <button class="adm-tab" onclick="switchAdminTab('pending-students')" id="adm-tab-pending-students">
+                        📋 Student Verifications <span class="badge-pending" id="tab-pending-count">0</span>
+                    </button>
+                    <button class="adm-tab" onclick="switchAdminTab('students')" id="adm-tab-students">
+                        👥 Verified Students
+                    </button>
+                    <button class="adm-tab" onclick="switchAdminTab('stops')" id="adm-tab-stops">
+                        🚏 Stops & Fleet
+                    </button>
+                    <button class="adm-tab" onclick="switchAdminTab('incidents')" id="adm-tab-incidents">
+                        ⚠️ Road Incidents
+                    </button>
+                </div>
+
+                <!-- Tab 1: Road-Based Route Optimizer -->
+                <div id="admin-view-optimizer" class="admin-tab-panel active">
+                    <div class="glass-panel card">
+                        <div class="card-header">
+                            <div class="d-flex align-center gap-3">
+                                <h3>Real Road-Based Routing Engine (OpenStreetMap & OSRM)</h3>
+                                <select id="admin-bus-select" onchange="runAdminRouteOptimization()" class="form-select inline-select">
+                                    <option value="B01">Bus B01 (Erode North Corridor)</option>
+                                    <option value="B02">Bus B02 (Erode South & West Corridor)</option>
+                                    <option value="B03">Bus B03 (Erode Rural & Industrial Corridor)</option>
+                                </select>
+                                <select id="admin-shift-select" onchange="runAdminRouteOptimization()" class="form-select inline-select">
+                                    <option value="MORNING">🌅 Morning Pickup (1 ➔ 10 ➔ Campus)</option>
+                                    <option value="EVENING">🌆 Evening Drop (Campus ➔ 10 ➔ 1)</option>
+                                </select>
+                            </div>
+                            <div class="route-legend">
+                                <span class="legend-item"><span class="legend-color normal-color"></span> Normal Route (Blue)</span>
+                                <span class="legend-item"><span class="legend-color opt-color"></span> Issue Detour / Optimized (Red)</span>
+                                <span class="legend-item"><span class="legend-color block-color"></span> Blocked / Hazard Road</span>
+                            </div>
+                        </div>
+
+                        <!-- Quick Toggle Bar on Map Header -->
+                        <div class="quick-simulation-strip">
+                            <span class="strip-title">⚡ Quick Condition Simulation:</span>
+                            <div class="quick-toggle-chips" id="quick-toggle-chips-container">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Map -->
+                        <div id="admin-map-container" class="map-box large-map"></div>
+
+                        <!-- Optimization Stats -->
+                        <div class="optimizer-metrics-strip mt-3">
+                            <div class="opt-metric">
+                                <label>NORMAL ROUTE</label>
+                                <span id="adm-norm-time">-- mins</span> (<span id="adm-norm-dist">-- km</span>)
+                            </div>
+                            <div class="opt-arrow">➔</div>
+                            <div class="opt-metric highlight">
+                                <label>ROAD-OPTIMIZED DETOUR</label>
+                                <span id="adm-opt-time">-- mins</span> (<span id="adm-opt-dist">-- km</span>)
+                            </div>
+                            <div class="opt-saving">
+                                <label>AVOIDED DELAY / TIME SAVED</label>
+                                <span class="badge badge-success" id="adm-time-saved">-- mins saved</span>
+                            </div>
+                        </div>
+
+                        <!-- Route Path Breakdown -->
+                        <div class="route-breakdown-box mt-3">
+                            <h4>Optimized Road Traversal Sequence (Eliminating Backtracking & Overlaps)</h4>
+                            <div id="adm-route-nodes-flow" class="nodes-flow"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Simulated Road Condition Controls (4 Dummy Toggles) -->
+                <div id="admin-view-conditions" class="admin-tab-panel">
+                    <div class="glass-panel card">
+                        <div class="card-header">
+                            <div>
+                                <h3>🚦 Dummy Road Condition Toggles (Dynamic Alternative Routing)</h3>
+                                <p class="subtitle">Turn simulated road hazards ON/OFF to test real-time dynamic rerouting, roadblock avoidance, and map color changes without page reload.</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="fetchSimulatedConditions()">🔄 Refresh States</button>
+                        </div>
+
+                        <!-- 4 Condition Toggle Cards Grid -->
+                        <div class="conditions-grid" id="simulated-conditions-grid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <!-- Real-time Status Notice -->
+                        <div class="condition-live-status-box mt-3">
+                            <div class="status-box-header">
+                                <span class="live-pulse-dot"></span>
+                                <strong>Live Simulation Engine Status</strong>
+                            </div>
+                            <p id="condition-live-summary-text" class="text-muted">
+                                All simulation toggles immediately update the OSRM route geometry and Dijkstra road network weights in real time without refreshing the page.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Driver Approvals Queue -->
+                <div id="admin-view-pending-drivers" class="admin-tab-panel">
+                    <div class="glass-panel card">
+                        <div class="card-header">
+                            <div>
+                                <h3>👨‍✈️ Driver Signup Applications Queue</h3>
+                                <p class="subtitle">Verify driving license documents and approve or reject driver accounts</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="fetchPendingDrivers()">🔄 Refresh Applications</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Driver ID</th>
+                                        <th>Full Name</th>
+                                        <th>Phone</th>
+                                        <th>License Number</th>
+                                        <th>Driving License Document</th>
+                                        <th>Experience</th>
+                                        <th>Requested Bus</th>
+                                        <th>Submission Date</th>
+                                        <th>Admin Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-drivers-tbody">
+                                    <tr><td colspan="9" class="text-center">No driver applications pending approval.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- All Fleet Drivers Section -->
+                    <div class="glass-panel card mt-4">
+                        <div class="card-header">
+                            <h3>Active Fleet Drivers Directory</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Driver ID</th>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>License No</th>
+                                        <th>Assigned Bus</th>
+                                        <th>Experience</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="all-drivers-tbody">
+                                    <tr><td colspan="7" class="text-center">Loading drivers...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Pending Student Verifications -->
+                <div id="admin-view-pending-students" class="admin-tab-panel">
+                    <div class="glass-panel card">
+                        <div class="card-header">
+                            <div>
+                                <h3>Student Registration Approval Queue</h3>
+                                <p class="subtitle">Review and verify students before enabling portal login</p>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="fetchPendingStudents()">🔄 Refresh Queue</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Roll Number</th>
+                                        <th>Full Name</th>
+                                        <th>Department</th>
+                                        <th>Year</th>
+                                        <th>Requested Stop</th>
+                                        <th>Auto Bus</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-students-tbody">
+                                    <tr><td colspan="9" class="text-center">No student registrations pending approval.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: Verified Student Directory -->
+                <div id="admin-view-students" class="admin-tab-panel">
+                    <div class="glass-panel card">
+                        <div class="card-header">
+                            <h3>Verified Student Directory</h3>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="student-search-input" onkeyup="filterStudentsTable()" placeholder="Search name or roll no..." class="form-input">
+                                <select id="student-bus-filter" onchange="filterStudentsTable()" class="form-select">
+                                    <option value="ALL">All Buses</option>
+                                    <option value="B01">Bus B01</option>
+                                    <option value="B02">Bus B02</option>
+                                    <option value="B03">Bus B03</option>
+                                    </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="verified-students-table">
+                                <thead>
+                                    <tr>
+                                        <th>Roll Number</th>
+                                        <th>Name</th>
+                                        <th>Department</th>
+                                        <th>Year</th>
+                                        <th>Bus ID</th>
+                                        <th>Boarding Stop</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="verified-students-tbody">
+                                    <tr><td colspan="9" class="text-center">Loading student records...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 6: Stops & Fleet Management -->
+                <div id="admin-view-stops" class="admin-tab-panel">
+                    <div class="grid-layout-2col">
+                        <!-- Add Stop Form -->
+                        <div class="glass-panel card">
+                            <div class="card-header">
+                                <h3>➕ Add New Bus Stop</h3>
+                            </div>
+                            <p class="subtitle mb-3">Creating a new stop will automatically integrate it into Dijkstra road graph and recalculate bus routes.</p>
+                            <form id="add-stop-form" onsubmit="handleAddStop(event)">
+                                <div class="form-group">
+                                    <label>Stop Name</label>
+                                    <input type="text" id="new-stop-name" placeholder="e.g., Sampath Nagar" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Assign to Bus</label>
+                                    <select id="new-stop-bus" required class="form-select">
+                                        <option value="B01">B01 - Erode North</option>
+                                        <option value="B02">B02 - Erode South & West</option>
+                                        <option value="B03">B03 - Erode Rural & Industrial</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label>Latitude (Erode)</label>
+                                        <input type="number" step="0.0001" id="new-stop-lat" value="11.3350" required>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label>Longitude (Erode)</label>
+                                        <input type="number" step="0.0001" id="new-stop-lng" value="77.7150" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col">
+                                        <label>Morning Pickup</label>
+                                        <input type="text" id="new-stop-mtime" value="07:25 AM" required>
+                                    </div>
+                                    <div class="form-group col">
+                                        <label>Evening Drop</label>
+                                        <input type="text" id="new-stop-etime" value="05:50 PM" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block">Add Stop & Optimize Route</button>
+                            </form>
+                        </div>
+
+                        <!-- Current Stops List -->
+                        <div class="glass-panel card">
+                            <div class="card-header">
+                                <h3>🚏 Active Bus Stops Directory</h3>
+                            </div>
+                            <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Stop Name</th>
+                                            <th>Bus</th>
+                                            <th>GPS Coords</th>
+                                            <th>Morning</th>
+                                            <th>Students</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="all-stops-tbody">
+                                        <tr><td colspan="5" class="text-center">Loading stops...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 7: Incidents & Hazards Management -->
+                <div id="admin-view-incidents" class="admin-tab-panel">
+                    <div class="grid-layout-2col">
+                        <!-- Report Incident Form -->
+                        <div class="glass-panel card">
+                            <div class="card-header">
+                                <h3>⚠️ Report Road Hazard</h3>
+                            </div>
+                            <form id="add-incident-form" onsubmit="handleAddIncident(event)">
+                                <div class="form-group">
+                                    <label>Road Segment From (Stop/Junction)</label>
+                                    <select id="inc-source" class="form-select" required></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Road Segment To (Stop/Junction)</label>
+                                    <select id="inc-dest" class="form-select" required></select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Incident Type</label>
+                                    <select id="inc-type" class="form-select" required>
+                                        <option value="ROAD_BLOCK">🚧 Road Block (Full Closure / Construction)</option>
+                                        <option value="HEAVY_TRAFFIC">🚗 Heavy Traffic Jam (Severe Congestion)</option>
+                                        <option value="CONSTRUCTION">🏗️ Road Repair / Pipe Laying Work</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Delay Penalty (Minutes)</label>
+                                    <input type="number" id="inc-penalty" value="20" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <input type="text" id="inc-desc" placeholder="e.g., Waterlogging near bridge" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-block">Broadcast Incident & Trigger Detour</button>
+                            </form>
+                        </div>
+
+                        <!-- Active Incidents List -->
+                        <div class="glass-panel card">
+                            <div class="card-header">
+                                <h3>Live Incident Feeds</h3>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Road Segment</th>
+                                            <th>Description</th>
+                                            <th>Status</th>
+                                            <th>Toggle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="incidents-tbody">
+                                        <tr><td colspan="5" class="text-center">Loading incidents...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ========================================================= -->
+    <!--                     MODALS                                -->
+    <!-- ========================================================= -->
+
+    <!-- Student Registration Modal -->
+    <div id="modal-register" class="modal-overlay">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <h3>🎓 New Student Registration</h3>
+                <button class="modal-close" onclick="closeRegisterModal()">✕</button>
+            </div>
+            <p class="subtitle mb-3">Provide your details to register for Kalvi College Bus Transport. Your account will be verified by the administrator.</p>
+
+            <form id="student-reg-form" onsubmit="handleStudentRegister(event)">
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Full Name</label>
+                        <input type="text" id="reg-name" placeholder="e.g. Ramesh Kannan" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Roll Number (Unique)</label>
+                        <input type="text" id="reg-roll" placeholder="e.g. 26CSR031" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Department</label>
+                        <select id="reg-dept" class="form-select" required>
+                            <option value="CSE">Computer Science & Engineering (CSE)</option>
+                            <option value="ECE">Electronics & Communication (ECE)</option>
+                            <option value="AI & DS">Artificial Intelligence & Data Science</option>
+                            <option value="IT">Information Technology (IT)</option>
+                            <option value="MECH">Mechanical Engineering</option>
+                            <option value="EEE">Electrical & Electronics</option>
+                        </select>
+                    </div>
+                    <div class="form-group col">
+                        <label>Current Year</label>
+                        <select id="reg-year" class="form-select" required>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Preferred Bus Stopping</label>
+                    <select id="reg-stop" class="form-select" required>
+                        <option value="">-- Select Stopping --</option>
+                    </select>
+                    <small class="form-hint" id="reg-bus-hint">Bus route will be automatically allocated based on selected stop.</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Email Address</label>
+                        <input type="email" id="reg-email" placeholder="name@kalvi.edu" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Phone Number</label>
+                        <input type="tel" id="reg-phone" placeholder="9842100000" pattern="[0-9]{10}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label>Create Password</label>
+                        <input type="password" id="reg-pass" placeholder="••••••••" required>
+                    </div>
+                    <div class="form-group col">
+                        <label>Confirm Password</label>
+                        <input type="password" id="reg-pass2" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="modal-footer mt-3">
+                    <button type="button" class="btn btn-outline" onclick="closeRegisterModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Driving License Document Inspection Modal (for Admin Review) -->
+    <div id="modal-license-viewer" class="modal-overlay">
+        <div class="modal-card glass-panel" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>📄 Driving License Document Inspection</h3>
+                <button class="modal-close" onclick="closeLicenseViewerModal()">✕</button>
+            </div>
+            <div class="license-modal-body">
+                <div class="license-info-card">
+                    <div><strong>Driver Name:</strong> <span id="view-doc-driver-name">-</span></div>
+                    <div><strong>License Number:</strong> <span id="view-doc-license-num">-</span></div>
+                    <div><strong>Phone:</strong> <span id="view-doc-phone">-</span></div>
+                    <div><strong>Experience:</strong> <span id="view-doc-exp">-</span></div>
+                </div>
+                <div class="license-doc-display-box" id="license-doc-display-box">
+                    <div class="doc-icon-preview">🪪</div>
+                    <div id="view-doc-file-info" class="text-highlight">Official Driving License Record</div>
+                    <small class="text-muted">Verified Document ID on Record</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeLicenseViewerModal()">Close</button>
+                <button type="button" class="btn btn-primary" id="btn-modal-approve-driver">Approve Driver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map & Routing Config Modal -->
+    <div id="modal-api-key" class="modal-overlay">
+        <div class="modal-card glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>🗺️ OpenStreetMap & OSRM Engine Configuration</h3>
+                <button class="modal-close" onclick="closeKeyModal()">✕</button>
+            </div>
+            <p class="subtitle mb-3">
+                This project features live road-based route optimization with real road geometry from OpenStreetMap & OSRM (Open Source Routing Machine).
+            </p>
+            <div class="form-group">
+                <label>Routing Provider</label>
+                <input type="text" value="OpenStreetMap & OSRM Driving Engine (Active)" readonly class="form-input">
+                <small class="form-hint">Routes follow actual road geometries (not straight lines) with numbered stop sequence badges.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="closeKeyModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Report Modal -->
+    <div id="modal-driver-report" class="modal-overlay">
+        <div class="modal-card glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>⚠️ Driver Road Incident Report</h3>
+                <button class="modal-close" onclick="closeDriverReportModal()">✕</button>
+            </div>
+            <form onsubmit="handleDriverReport(event)">
+                <div class="form-group">
+                    <label>Hazard Type</label>
+                    <select id="drv-rep-type" class="form-select">
+                        <option value="HEAVY_TRAFFIC">Heavy Traffic / Congestion</option>
+                        <option value="ROAD_BLOCK">Road Block / Tree Fall / Diversion</option>
+                        <option value="RAIN_ALERT">Heavy Rain / Waterlogging</option>
+                        <option value="CONSTRUCTION">Road Construction</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Location / Details</label>
+                    <input type="text" id="drv-rep-desc" placeholder="e.g. Waterlogged near Cauvery bridge" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeDriverReportModal()">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Submit Live Alert</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Leaflet JS for OpenStreetMap & OSRM Tile Display -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/app.js"></script>
+</body>
+</html>
