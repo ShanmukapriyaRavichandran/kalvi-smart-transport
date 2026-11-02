@@ -21,40 +21,9 @@
 
 ---
 
-##  Demo Access Credentials
 
-| Portal | Identifier / Username | Password | Notes |
-| :--- | :--- | :--- | :--- |
-| ** Admin Dashboard** | `admin` | `admin123` | Full management, approvals & hazard simulation |
-| ** Driver Module** | `driver1` | `driver123` | Assigned to Bus B01 |
-| ** Student Portal** | `26CSR001` | `student123` | Verified 3rd Year CSE student |
 
----
 
-##  Project Architecture
-
-```
-├── api/
-│   └── index.js              # Vercel Serverless Function & Express API Backend
-├── public/                   # Static web assets served by Vercel
-│   ├── index.html            # Single Page Application (Leaflet, UI)
-│   ├── style.css             # Responsive styling & themes
-│   └── app.js                # Frontend client logic & API interactions
-├── src/                      # Java backend source code
-│   ├── Main.java             # Java console entry point
-│   ├── TransportServer.java  # Java HTTP server & REST API
-│   ├── DatabaseManager.java  # SQLite JDBC persistence layer
-│   └── Dijkstra.java         # Weighted graph & routing algorithms
-├── lib/                      # SQLite JDBC, MySQL, SLF4J Java JARs
-├── web/                      # Source web templates and static assets
-├── kalvi_transport.db        # SQLite database
-├── initial_data.json         # Seed dataset for instant deployment
-├── server.js                 # Standalone Node.js Express server
-├── run.bat                   # 1-click Windows compilation & startup script
-└── vercel.json               # Vercel deployment configuration & URL rewrites
-```
-
----
 
 
 
