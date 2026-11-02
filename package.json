@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Kalvi College Smart Transport Management System with Autonomous Dijkstra Route Optimizer and Fleet System",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node local-server.js",
+    "dev": "node local-server.js"
   },
   "keywords": [
     "transport",
