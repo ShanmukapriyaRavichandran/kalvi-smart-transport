@@ -1,4 +1,4 @@
-# 🚌 Kalvi College Smart Transport Management System
+# 🚌 Kalvi College Transport Management System
 ### Autonomous Dijkstra Route Optimizer & Fleet Management Platform
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
